@@ -732,7 +732,6 @@ public class JavaUmlParser {
 
 		}
 		return is_obj;
-
 	}
 																																																																													
 }
