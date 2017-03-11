@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
-
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseException;
 import com.github.javaparser.ast.CompilationUnit;
