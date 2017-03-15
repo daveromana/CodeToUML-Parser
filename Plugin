@@ -1,0 +1,27 @@
+<plugin>
+02
+  <groupId>org.apache.maven.plugins</groupId>
+03
+  <artifactId>maven-javadoc-plugin</artifactId>
+04
+  <configuration>
+05
+    <doclet>org.umlgraph.doclet.UmlGraphDoc</doclet>
+06
+    <docletArtifact>
+07
+      <groupId>org.umlgraph</groupId>
+08
+      <artifactId>doclet</artifactId>
+09
+      <version>5.1</version>
+10
+    </docletArtifact>
+11
+    <additionalparam>-horizontal -attributes -enumconstants -enumerations -operations -types -visibility -inferrel -inferdep -hide java.* -inferrel -collpackages java.util.*</additionalparam>
+12
+    <show>public</show>
+13
+  </configuration>
+14
+</plugin>
