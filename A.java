@@ -1,6 +1,6 @@
  
 
-import java.util.Collection;
+import java.util.Collection ;
 
 public class A {
  
@@ -12,7 +12,7 @@ public class A {
 	 
 	private C c;
 	 
-	private Collection<D> d;
+	private Collection<D> d ;
 	 
 }
  
