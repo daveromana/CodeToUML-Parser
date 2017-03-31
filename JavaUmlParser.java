@@ -1,5 +1,6 @@
 package umlParser;
 
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
@@ -43,6 +44,7 @@ public class JavaUmlParser {
 	static FileWriter output_file;
 	static ArrayList<String> methods_name = new ArrayList<String>();
 	static ArrayList<String> constructor_name = new ArrayList<String>();
+
 
 	public static void main(String[] args) throws IOException, ParseException {
 
@@ -116,6 +118,7 @@ public class JavaUmlParser {
 					try {
 						instream = new FileInputStream(filename);
 						cUnit = JavaParser.parse(instream);
+	
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -260,6 +263,7 @@ public class JavaUmlParser {
 							}
 
 						}
+						
 						if (classObjectExist == "N") {
 							class_obj.put(partsArray[0], var.get(0));
 							System.out.println(partsArray[0] + " \"0\"" + "--" + "\"1\" " + var.get(0));
