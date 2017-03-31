@@ -3,7 +3,6 @@ package umlParser;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-
 import net.sourceforge.plantuml.GeneratedImage;
 import net.sourceforge.plantuml.SourceFileReader;
 
