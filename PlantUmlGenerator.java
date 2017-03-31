@@ -7,7 +7,6 @@ import net.sourceforge.plantuml.GeneratedImage;
 import net.sourceforge.plantuml.SourceFileReader;
 
 public class PlantUmlGenerator {
-
 	public void createUML(String fName) {
 		File src = new File(fName);
 		SourceFileReader read;
