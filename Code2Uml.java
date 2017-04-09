@@ -1,16 +1,17 @@
 package code2uml;
 
+import japa.parser.JavaParser;
+import japa.parser.ast.CompilationUnit;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.io.IOException;
 
 public class Code2Uml {
 
     public static void main(String[] args) {
         
-        FileInputStream finStream ;
+        FileInputStream finStream = null ;
         CompilationUnit cu;
         String inputDirName = "C:\\Users\\Karan\\Downloads\\202 downloads\\cmpe202-master\\cmpe202-master\\umlparser\\uml-parser-test-1";
         File inputFile = new File(inputDirName);
@@ -32,8 +33,16 @@ public class Code2Uml {
                 try{
                     finStream = new FileInputStream(fileName);
                     cu = JavaParser.parse(finStream);
-                } catch (FileNotFoundException ex) {
-                    Logger.getLogger(Code2Uml.class.getName()).log(Level.SEVERE, null, ex);
+                    System.out.println(cu);
+                }catch (Exception e) {
+                    e.printStackTrace();
+                }
+                finally{
+                    try{
+                        finStream.close();    
+                    }catch (IOException e){
+                        e.printStackTrace();
+                    }
                 }
             }
         }
