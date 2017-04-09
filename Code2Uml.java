@@ -37,12 +37,5 @@ public class Code2Uml {
                 }
             }
         }
-        
-        for(int j = 0; j<javaFiles.length; j++){
-            if(javaFiles[j] != null)
-            System.out.println(javaFiles[j]);
-        }
-        
-        
     }   
 }
