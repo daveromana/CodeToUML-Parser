@@ -10,10 +10,11 @@ public class Code2Uml {
         File inputFile = new File(inputDirName);
         File[] inputFileList = inputFile.listFiles();
         
-        String classNames = null;
-        String[] allFiles = null;
+        String classNames ;
+        String[] allFiles ;
         String[] javaFiles = new String[inputFileList.length];
         int i = 0;
+        
         for(File f : inputFileList)
         {
             classNames = f.getName();
@@ -23,8 +24,12 @@ public class Code2Uml {
                 i++;
             }
         }
-        for(String s : javaFiles){
-            System.out.println(s);
+        
+        for(int j = 0; j<javaFiles.length; j++){
+            if(javaFiles[j] != null)
+            System.out.println(javaFiles[j]);
         }
+        
+        
     }   
 }
