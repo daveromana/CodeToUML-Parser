@@ -4,7 +4,6 @@ import japa.parser.JavaParser;
 import japa.parser.ast.CompilationUnit;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class Code2Uml {
