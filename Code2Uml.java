@@ -1,13 +1,19 @@
 package code2uml;
 
+import com.sun.org.apache.bcel.internal.classfile.JavaClass;
 import japa.parser.JavaParser;
 import japa.parser.ast.CompilationUnit;
+import japa.parser.ast.body.ClassOrInterfaceDeclaration;
+import japa.parser.ast.body.FieldDeclaration;
+import japa.parser.ast.visitor.VoidVisitorAdapter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class Code2Uml {
-
+    static ArrayList<String> allVariables = new ArrayList<String>();
+    static ArrayList<String> javaFiles = new ArrayList();
     public static void main(String[] args) {
         
         FileInputStream finStream = null ;
@@ -18,7 +24,6 @@ public class Code2Uml {
         
         String classNames ;
         String[] allFiles ;
-        String[] javaFiles = new String[inputFileList.length];
         int i = 0;
         
         for(File f : inputFileList)
@@ -26,13 +31,23 @@ public class Code2Uml {
             classNames = f.getName();
             allFiles = classNames.split("\\.");
             if("java".equals(allFiles[1].toLowerCase())){
-                javaFiles[i] = allFiles[0];
-                i++;
+                javaFiles.add(allFiles[0]);
                 String fileName = inputDirName + "/" + f.getName();
                 try{
                     finStream = new FileInputStream(fileName);
                     cu = JavaParser.parse(finStream);
-                    System.out.println(cu);
+                    
+                    //calling methods to find variables
+                    GetVariables getVar = new GetVariables();
+                    getVar.visit(cu,null);
+                    
+                    //calling methods to find what classes being extended or interfaces being implemented
+                    GetClassesOrInterfaces getCls = new GetClassesOrInterfaces();
+                    getCls.visit(cu, 0);
+                    
+                    createUMLInput();
+                    //System.out.println(cu+"\n\n");
+                    
                 }catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -45,5 +60,54 @@ public class Code2Uml {
                 }
             }
         }
+        
+        
     }   
+
+    private static void createUMLInput() {
+        
+        System.out.println(javaFiles.size());
+       /*ArrayList<String> finalOp = new ArrayList<String>() ;
+       for(String className : javaFiles){
+           
+           finalOp.add("Class "+className + "{\n");
+           for(String var : allVariables ){
+               finalOp.add(var+"\n");
+           }
+           finalOp.add("}\n");
+       } 
+       for(String s : finalOp)
+       System.out.print(s);*/
+    }
+
+    //Class for fetching variables in the test classes
+    private static class GetVariables extends VoidVisitorAdapter{
+        
+        public void visit(FieldDeclaration fd, Object obj){
+            
+            String classVariables;
+            String variableWdBracs = fd.getVariables().toString();
+           
+            if(fd.getModifiers() == 2){
+              classVariables = "- " + variableWdBracs.substring(1, variableWdBracs.length()-1) + " : " + fd.getType();
+              allVariables.add(classVariables);
+            }else if(fd.getModifiers() == 1){
+              classVariables = "- " + variableWdBracs.substring(1, variableWdBracs.length()-1) + " : " + fd.getType();
+              allVariables.add(classVariables);
+            }       
+        }
+    }
+    
+    //Class for Extracting all the classes
+    private static class GetClassesOrInterfaces extends VoidVisitorAdapter{
+        
+        public void visit(ClassOrInterfaceDeclaration cid, Object obj){
+            
+          
+            
+        }
+        
+    }
+
+    
 }
