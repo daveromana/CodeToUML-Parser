@@ -1,6 +1,5 @@
 package code2uml;
 
-import com.sun.org.apache.bcel.internal.classfile.JavaClass;
 import japa.parser.JavaParser;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.body.ClassOrInterfaceDeclaration;
@@ -14,6 +13,8 @@ import java.util.ArrayList;
 public class Code2Uml {
     static ArrayList<String> allVariables = new ArrayList<String>();
     static ArrayList<String> javaFiles = new ArrayList();
+    static String[] allFiles ;
+     
     public static void main(String[] args) {
         
         FileInputStream finStream = null ;
@@ -23,7 +24,7 @@ public class Code2Uml {
         File[] inputFileList = inputFile.listFiles();
         
         String classNames ;
-        String[] allFiles ;
+       
         int i = 0;
         
         for(File f : inputFileList)
@@ -66,18 +67,21 @@ public class Code2Uml {
 
     private static void createUMLInput() {
         
-        System.out.println(javaFiles.size());
-       /*ArrayList<String> finalOp = new ArrayList<String>() ;
-       for(String className : javaFiles){
+        //System.out.println(javaFiles.size());
+       ArrayList<String> finalOp = new ArrayList<String>() ;
            
-           finalOp.add("Class "+className + "{\n");
+           finalOp.add("Class "+allFiles[0] + "{\n");
            for(String var : allVariables ){
                finalOp.add(var+"\n");
            }
-           finalOp.add("}\n");
-       } 
+           finalOp.add("}\n\n");
+
+       
        for(String s : finalOp)
-       System.out.print(s);*/
+       System.out.print(s);
+       
+       finalOp.clear();
+       allVariables.clear();
     }
 
     //Class for fetching variables in the test classes
