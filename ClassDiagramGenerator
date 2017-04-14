@@ -1,5 +1,4 @@
 
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -8,13 +7,12 @@ import net.sourceforge.plantuml.FileFormat;
 import net.sourceforge.plantuml.FileFormatOption;
 import net.sourceforge.plantuml.SourceStringReader;
 
-
 public class ClassDiagramGenerator {
-    
-    public void createClassDiagram(String fileIp) throws FileNotFoundException, IOException{
+
+    public void createClassDiagram(String fileIp) throws FileNotFoundException, IOException {
         SourceStringReader ssr = new SourceStringReader(fileIp);
-        FileOutputStream fout = new FileOutputStream(new File("C:/Users/Karan/Downloads/202 downloads/cmpe202-master/cmpe202-master/umlparser/uml-parser-test-1/outputImage.svg"));
+        FileOutputStream fout;
+        fout = new FileOutputStream(new File("C:/Users/Karan/Downloads/202 downloads/cmpe202-master/cmpe202-master/umlparser/uml-parser-test-1/outputImage.svg"));
         ssr.generateImage(fout, new FileFormatOption(FileFormat.SVG, false));
     }
-    
 }
