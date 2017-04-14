@@ -10,8 +10,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import javax.print.DocFlavor.STRING;
-
 public class Code2Uml {
 
     static ArrayList<String> allVariables = new ArrayList<String>();
@@ -20,8 +18,9 @@ public class Code2Uml {
     static ArrayList<String> isAssosiatedTo = new ArrayList<String>();
     static ArrayList<String> repAssociation = new ArrayList<String>();
     static ArrayList<String> finalOp = new ArrayList<>();
-
-    public static void main(String[] args) {
+    static ArrayList<String> umlGeneratorIp = new ArrayList<>();
+    
+    public static void main(String[] args) throws IOException {
 
         FileInputStream finStream = null;
         CompilationUnit cu;
@@ -38,6 +37,8 @@ public class Code2Uml {
                 javaFiles.add(allFiles[0]);
             }
         }
+
+        umlGeneratorIp.add("@startuml \n");
 
         for (File f2 : inputFileList) {
             classNames = f2.getName();
@@ -58,8 +59,8 @@ public class Code2Uml {
                     getCls.visit(cu, 0);
 
                     createUMLInput();
-                    //System.out.println(cu+"\n\n");
 
+                    //System.out.println(cu+"\n\n");
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {
@@ -71,11 +72,19 @@ public class Code2Uml {
                 }
             }
         }
+        umlGeneratorIp.add("@enduml");
+        
+        System.out.println();
+        umlGeneratorIp.forEach((s) -> {
+            System.out.print(s);
+        });
+        
+        new ClassDiagramGenerator().createClassDiagram(umlGeneratorIp.toString());
     }
 
     private static void createUMLInput() {
 
-        //System.out.println(javaFiles.size());    
+        //System.out.println(javaFiles.size());
         finalOp.add("Class " + allFiles[0]);
         finalOp.add("{\n");
         allVariables.forEach((var) -> {
@@ -86,21 +95,20 @@ public class Code2Uml {
 
         Iterator<String> iter = finalOp.iterator();
 
-        
-            while (iter.hasNext()) {
-                String b = iter.next();
+        while (iter.hasNext()) {
+            String b = iter.next();
 
-                for (String a : repAssociation) {
-                    if (a.equals(b)) {
-                        iter.remove();
-                    }
-                }
-            }
-        
+            repAssociation.stream().filter((a) -> (a.equals(b))).forEachOrdered((_item) -> {
+                iter.remove();
+            });
+        }
+
         System.out.println();
         finalOp.forEach((s) -> {
+        umlGeneratorIp.add(s);
             System.out.print(s);
         });
+        
 
         System.out.println();
 
