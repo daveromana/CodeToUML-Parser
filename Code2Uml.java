@@ -4,6 +4,7 @@ import japa.parser.ParseException;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.body.ClassOrInterfaceDeclaration;
 import japa.parser.ast.body.FieldDeclaration;
+import japa.parser.ast.body.MethodDeclaration;
 import japa.parser.ast.visitor.VoidVisitorAdapter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,22 +16,30 @@ import java.util.regex.Pattern;
 
 public class Code2Uml {
 
-    static ArrayList<String> allVariables = new ArrayList<String>();
     static ArrayList<String> javaFiles = new ArrayList();
     static String[] allFiles;
+    static boolean isInterface;
+    
+    //variables used in fetching all the fields
+    static ArrayList<String> allVariables = new ArrayList<String>();
     static ArrayList<String> isAssosiatedTo = new ArrayList<String>();
     static ArrayList<String> repAssociation = new ArrayList<String>();
     static ArrayList<String> finalOp = new ArrayList<>();
     static ArrayList<String> umlGeneratorIp = new ArrayList<>();
+    
+    //variables used in finding all the methods
+    static ArrayList<String> allMethods = new ArrayList<String>();
 
     public static void main(String[] args) throws IOException {
 
         FileInputStream finStream = null;
         CompilationUnit cu;
-        String inputDirName = "C:\\Users\\Karan\\Downloads\\202 downloads\\cmpe202-master\\cmpe202-master\\umlparser\\uml-parser-test-1";
+        String inputDirName = "C:\\Users\\Karan\\Downloads\\202 downloads\\cmpe202-master\\cmpe202-master\\umlparser\\uml-parser-test-2";
         File inputFile = new File(inputDirName);
         File[] inputFileList = inputFile.listFiles();
         String classNames;
+        
+       
 
         //fetch all the class names in a file
         for (File f : inputFileList) {
@@ -52,10 +61,17 @@ public class Code2Uml {
                 try {
                     finStream = new FileInputStream(fileName);
                     cu = JavaParser.parse(finStream);
+                    
+                     isInterface = cu.toString().contains(" interface ");
+                     System.out.println(isInterface);
 
                     //calling methods to find variables
                     GetVariables getVar = new GetVariables();
                     getVar.visit(cu, null);
+                    
+                    //calling methods to get all methods in the test cases
+                    GetMethods getMet = new GetMethods();
+                    getMet.visit(cu, null);
 
                     //calling methods to find what classes being extended or interfaces being implemented
                     GetClassesOrInterfaces getCls = new GetClassesOrInterfaces();
@@ -90,7 +106,12 @@ public class Code2Uml {
     private static void createUMLInput() {
 
         //System.out.println(javaFiles.size());
-        finalOp.add("Class " + allFiles[0]);
+        if(isInterface){
+            finalOp.add("interface "+ allFiles[0]);
+        }
+        else{
+            finalOp.add("class " + allFiles[0]);
+        }
         finalOp.add("{\n");
         allVariables.forEach((var) -> {
             finalOp.add(var);
@@ -164,6 +185,23 @@ public class Code2Uml {
                 }
             }
         }
+    }
+    
+    
+    //Class for extracting all methods in the test codes
+    
+    private static class GetMethods extends VoidVisitorAdapter<Object>{
+        
+        @Override
+        public void visit(MethodDeclaration md, Object o){
+            
+            
+            String allMethodNames = md.getName();
+            System.out.println(allMethodNames);
+            
+            
+        }
+        
     }
 
     //Class for Extracting all the classes
