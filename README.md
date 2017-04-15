@@ -1,4 +1,4 @@
-# CodeToUML-Parser
+# CodeToUML-Parser (in development)
 The project's objective is to create a Parser that takes Code (written in Java) and generates a UML class diagram corresponding to the code.
 
 Starting with the basic coding of the java parser.
