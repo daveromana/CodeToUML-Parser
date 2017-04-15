@@ -19,14 +19,14 @@ public class Code2Uml {
     static ArrayList<String> javaFiles = new ArrayList();
     static String[] allFiles;
     static boolean isInterface;
-    
+
     //variables used in fetching all the fields
     static ArrayList<String> allVariables = new ArrayList<String>();
     static ArrayList<String> isAssosiatedTo = new ArrayList<String>();
     static ArrayList<String> repAssociation = new ArrayList<String>();
     static ArrayList<String> finalOp = new ArrayList<>();
     static ArrayList<String> umlGeneratorIp = new ArrayList<>();
-    
+
     //variables used in finding all the methods
     static ArrayList<String> allMethods = new ArrayList<String>();
 
@@ -38,8 +38,6 @@ public class Code2Uml {
         File inputFile = new File(inputDirName);
         File[] inputFileList = inputFile.listFiles();
         String classNames;
-        
-       
 
         //fetch all the class names in a file
         for (File f : inputFileList) {
@@ -61,14 +59,13 @@ public class Code2Uml {
                 try {
                     finStream = new FileInputStream(fileName);
                     cu = JavaParser.parse(finStream);
-                    
-                     isInterface = cu.toString().contains(" interface ");
-                     System.out.println(isInterface);
+
+                    isInterface = cu.toString().contains(" interface ");
 
                     //calling methods to find variables
                     GetVariables getVar = new GetVariables();
                     getVar.visit(cu, null);
-                    
+
                     //calling methods to get all methods in the test cases
                     GetMethods getMet = new GetMethods();
                     getMet.visit(cu, null);
@@ -91,10 +88,6 @@ public class Code2Uml {
         }
         umlGeneratorIp.add("@enduml");
 
-        /*System.out.println();
-        umlGeneratorIp.forEach((s) -> {
-            System.out.print(s);
-        });*/
         String umlGeneratorIpStr = umlGeneratorIp.toString().replaceAll(",", " ").replaceFirst(Pattern.quote("["), " ");
         umlGeneratorIpStr = umlGeneratorIpStr.substring(0, umlGeneratorIpStr.length() - 1);
         System.out.println(umlGeneratorIpStr);
@@ -106,10 +99,9 @@ public class Code2Uml {
     private static void createUMLInput() {
 
         //System.out.println(javaFiles.size());
-        if(isInterface){
-            finalOp.add("interface "+ allFiles[0]);
-        }
-        else{
+        if (isInterface) {
+            finalOp.add("interface " + allFiles[0]);
+        } else {
             finalOp.add("class " + allFiles[0]);
         }
         finalOp.add("{\n");
@@ -117,7 +109,6 @@ public class Code2Uml {
             finalOp.add(var);
             finalOp.add("\n");
         });
-        finalOp.add("}\n\n");
 
         Iterator<String> iter = finalOp.iterator();
 
@@ -129,16 +120,21 @@ public class Code2Uml {
             });
         }
 
-        System.out.println();
+        for (String a : allMethods) {
+            finalOp.add(a);
+        }
+
+        finalOp.add("\n}\n\n");
+
         finalOp.forEach((s) -> {
             umlGeneratorIp.add(s);
             //System.out.print(s);
         });
 
-        //System.out.println();
         finalOp.clear();
         allVariables.clear();
         isAssosiatedTo.clear();
+        allMethods.clear();
     }
 
     //Class for fetching variables in the test classes
@@ -156,7 +152,7 @@ public class Code2Uml {
                 classVariables = "- " + variableWdBracs.substring(1, variableWdBracs.length() - 1) + " : " + fd.getType();
                 allVariables.add(classVariables);
             } else if (fd.getModifiers() == 1) {
-                classVariables = "- " + variableWdBracs.substring(1, variableWdBracs.length() - 1) + " : " + fd.getType();
+                classVariables = "+ " + variableWdBracs.substring(1, variableWdBracs.length() - 1) + " : " + fd.getType();
                 allVariables.add(classVariables);
             }
 
@@ -186,22 +182,42 @@ public class Code2Uml {
             }
         }
     }
-    
-    
+
     //Class for extracting all methods in the test codes
-    
-    private static class GetMethods extends VoidVisitorAdapter<Object>{
-        
+    private static class GetMethods extends VoidVisitorAdapter<Object> {
+
         @Override
-        public void visit(MethodDeclaration md, Object o){
-            
-            
-            String allMethodNames = md.getName();
-            System.out.println(allMethodNames);
-            
-            
+        public void visit(MethodDeclaration md, Object o) {
+
+            String methods;
+            if (md.getParameters() == null) {
+
+                if (md.getModifiers() == 1) {
+                    methods = "+ " + md.getName() + " : " + md.getType();
+                    allMethods.add(methods);
+                } else {
+                    methods = "- " + md.getName() + " : " + md.getType();
+                    allMethods.add(methods);
+                }
+            } else {
+
+                ArrayList<String> param = new ArrayList<String>();
+                param.add(md.getParameters().toString());
+               
+                for (String prm : param) {
+                    
+                    String[] prmWdBraces = prm.substring(1, prm.length()-1).split(" ");
+                    
+                    if (md.getModifiers() == 1) {
+                        methods = "+ " + md.getName() + "( " + prmWdBraces[1]+ ": " + prmWdBraces[0]  + ") : " + md.getType();
+                        allMethods.add(methods);
+                    } else {
+                        methods = "- " + md.getName() + "( " + prm.substring(1, prm.length()-1) + ") : " + md.getType();
+                        allMethods.add(methods);
+                    }
+                }
+            }
         }
-        
     }
 
     //Class for Extracting all the classes
