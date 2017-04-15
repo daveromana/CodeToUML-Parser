@@ -16,3 +16,5 @@ public class ClassDiagramGenerator {
         ssr.generateImage(fout, new FileFormatOption(FileFormat.SVG, false));
     }
 }
+
+
