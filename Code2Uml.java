@@ -203,16 +203,16 @@ public class Code2Uml {
 
                 ArrayList<String> param = new ArrayList<String>();
                 param.add(md.getParameters().toString());
-               
+
                 for (String prm : param) {
-                    
-                    String[] prmWdBraces = prm.substring(1, prm.length()-1).split(" ");
-                    
+
+                    String[] prmWdBraces = prm.substring(1, prm.length() - 1).split(" ");
+
                     if (md.getModifiers() == 1) {
-                        methods = "+ " + md.getName() + "( " + prmWdBraces[1]+ ": " + prmWdBraces[0]  + ") : " + md.getType();
+                        methods = "+ " + md.getName() + "( " + prmWdBraces[1] + ": " + prmWdBraces[0] + ") : " + md.getType();
                         allMethods.add(methods);
                     } else {
-                        methods = "- " + md.getName() + "( " + prm.substring(1, prm.length()-1) + ") : " + md.getType();
+                        methods = "- " + md.getName() + "( " + prm.substring(1, prm.length() - 1) + ") : " + md.getType();
                         allMethods.add(methods);
                     }
                 }
