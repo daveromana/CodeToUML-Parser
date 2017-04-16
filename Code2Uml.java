@@ -201,21 +201,49 @@ public class Code2Uml {
                 }
             } else {
 
-                ArrayList<String> param = new ArrayList<String>();
-                param.add(md.getParameters().toString());
-
-                for (String prm : param) {
-
-                    String[] prmWdBraces = prm.substring(1, prm.length() - 1).split(" ");
-
+                String[] param = md.getParameters().toString().replace("]", "").replace("[", "").split(",");
+                String[] singleParam ; 
+                for(String s : param){
+                    
+                    System.out.println("test "+s);
+                }
+                
+                int numOfPrm = md.getParameters().size();
+                //System.out.println(numOfPrm);
+                if (numOfPrm == 1) {
+                    singleParam = param[0].split(" ");
                     if (md.getModifiers() == 1) {
-                        methods = "+ " + md.getName() + "( " + prmWdBraces[1] + ": " + prmWdBraces[0] + ") : " + md.getType();
+                        methods = "+ " + md.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ") : " + md.getType();
                         allMethods.add(methods);
                     } else {
-                        methods = "- " + md.getName() + "( " + prm.substring(1, prm.length() - 1) + ") : " + md.getType();
+                        methods = "- " + md.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ") : " + md.getType();
                         allMethods.add(methods);
                     }
+
+                } else {
+                    if (md.getModifiers() == 1) {
+                        methods = "+ " + md.getName() + "(";
+                        allMethods.add(methods);
+                    } else {
+                        methods = "- " + md.getName() + "(";
+                        allMethods.add(methods);
+                    }
+                    for (String prm : param) {
+                        System.out.println(prm);                        
+                        String[] parName = prm.replaceAll("^\\s+", "").replaceAll("\\s+$", "").split(" ");
+                        methods = parName[1] + ":" + parName[0]+",";
+                        System.out.println(methods);
+                        allMethods.add(methods);
+                        
+                    }
+                    
+                    allMethods.add("):");
+                    allMethods.add(md.getType().toString());
                 }
+
+                /*if (numOfPrm > 1) {
+                    allMethods.remove(allMethods.lastIndexOf(" , "));
+                }*/
             }
         }
     }
