@@ -87,9 +87,18 @@ public class Code2Uml {
             }
         }
         umlGeneratorIp.add("@enduml");
-
-        String umlGeneratorIpStr = umlGeneratorIp.toString().replaceAll(",", " ").replaceFirst(Pattern.quote("["), " ");
-        umlGeneratorIpStr = umlGeneratorIpStr.substring(0, umlGeneratorIpStr.length() - 1);
+        int i = 0;
+        String umlGeneratorIpStr = ""; 
+        for(String s :umlGeneratorIp){
+            if(i == 0 ){
+                umlGeneratorIpStr = s;
+                i++;
+            }
+            else{
+                umlGeneratorIpStr =umlGeneratorIpStr + s ;
+            }
+            
+        }
         System.out.println(umlGeneratorIpStr);
 
         // final call to plantUmlGenerator
@@ -100,9 +109,9 @@ public class Code2Uml {
 
         //System.out.println(javaFiles.size());
         if (isInterface) {
-            finalOp.add("interface " + allFiles[0]);
+            finalOp.add("interface " + allFiles[0] );
         } else {
-            finalOp.add("class " + allFiles[0]);
+            finalOp.add("class " + allFiles[0] );
         }
         finalOp.add("{\n");
         allVariables.forEach((var) -> {
@@ -231,19 +240,20 @@ public class Code2Uml {
                     for (String prm : param) {
                         System.out.println(prm);                        
                         String[] parName = prm.replaceAll("^\\s+", "").replaceAll("\\s+$", "").split(" ");
-                        methods = parName[1] + ":" + parName[0]+",";
+                        methods = parName[1] + ":" + parName[0] ;
+                        
                         System.out.println(methods);
                         allMethods.add(methods);
-                        
+                        allMethods.add(",");
                     }
                     
                     allMethods.add("):");
                     allMethods.add(md.getType().toString());
                 }
 
-                /*if (numOfPrm > 1) {
-                    allMethods.remove(allMethods.lastIndexOf(" , "));
-                }*/
+                if (numOfPrm > 1) {
+                    allMethods.remove(allMethods.lastIndexOf(","));
+                }
             }
         }
     }
