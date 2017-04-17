@@ -12,7 +12,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.regex.Pattern;
 
 public class Code2Uml {
 
@@ -29,6 +28,9 @@ public class Code2Uml {
 
     //variables used in finding all the methods
     static ArrayList<String> allMethods = new ArrayList<String>();
+
+    //variable to get interfaces and child classes
+    static ArrayList<String> allInterfaceNClasses = new ArrayList<String>();
 
     public static void main(String[] args) throws IOException {
 
@@ -88,16 +90,15 @@ public class Code2Uml {
         }
         umlGeneratorIp.add("@enduml");
         int i = 0;
-        String umlGeneratorIpStr = ""; 
-        for(String s :umlGeneratorIp){
-            if(i == 0 ){
+        String umlGeneratorIpStr = "";
+        for (String s : umlGeneratorIp) {
+            if (i == 0) {
                 umlGeneratorIpStr = s;
                 i++;
+            } else {
+                umlGeneratorIpStr = umlGeneratorIpStr + s;
             }
-            else{
-                umlGeneratorIpStr =umlGeneratorIpStr + s ;
-            }
-            
+
         }
         System.out.println(umlGeneratorIpStr);
 
@@ -107,11 +108,10 @@ public class Code2Uml {
 
     private static void createUMLInput() {
 
-        //System.out.println(javaFiles.size());
         if (isInterface) {
-            finalOp.add("interface " + allFiles[0] );
+            finalOp.add("interface " + allFiles[0]);
         } else {
-            finalOp.add("class " + allFiles[0] );
+            finalOp.add("class " + allFiles[0]);
         }
         finalOp.add("{\n");
         allVariables.forEach((var) -> {
@@ -167,7 +167,6 @@ public class Code2Uml {
 
             //Association Logic goes here..
             for (String s : types) {
-                //System.out.print(s+" - ");
                 for (String className : javaFiles) {
 
                     if (isAssosiatedTo.contains(s)) {
@@ -181,7 +180,6 @@ public class Code2Uml {
                     } else if (s.contains("<" + className + ">")) {
                         int beginIndex = s.indexOf("<");
                         int endIndex = s.indexOf(">");
-                        //System.out.println(s.substring(beginIndex+1, endIndex));
                         isAssosiatedTo.add(s.substring(beginIndex + 1, endIndex));
                         finalOp.add(allFiles[0] + "--" + s.substring(beginIndex + 1, endIndex));
                         finalOp.add("\n");
@@ -211,14 +209,9 @@ public class Code2Uml {
             } else {
 
                 String[] param = md.getParameters().toString().replace("]", "").replace("[", "").split(",");
-                String[] singleParam ; 
-                for(String s : param){
-                    
-                    System.out.println("test "+s);
-                }
-                
+                String[] singleParam;
+
                 int numOfPrm = md.getParameters().size();
-                //System.out.println(numOfPrm);
                 if (numOfPrm == 1) {
                     singleParam = param[0].split(" ");
                     if (md.getModifiers() == 1) {
@@ -238,15 +231,12 @@ public class Code2Uml {
                         allMethods.add(methods);
                     }
                     for (String prm : param) {
-                        System.out.println(prm);                        
                         String[] parName = prm.replaceAll("^\\s+", "").replaceAll("\\s+$", "").split(" ");
-                        methods = parName[1] + ":" + parName[0] ;
-                        
-                        System.out.println(methods);
+                        methods = parName[1] + ":" + parName[0];
                         allMethods.add(methods);
                         allMethods.add(",");
                     }
-                    
+
                     allMethods.add("):");
                     allMethods.add(md.getType().toString());
                 }
@@ -263,9 +253,28 @@ public class Code2Uml {
 
         @Override
         public void visit(ClassOrInterfaceDeclaration cid, Object obj) {
+            ArrayList<String> classesExtended = new ArrayList<>();
+
+            if (cid.getExtends() != null) {
+                String c1 = allFiles[0] + " --|> " + cid.getExtends().toString().replace("[", "").replace("]", "");
+                finalOp.add(c1 + "\n");
+            }
+
+            if (cid.getImplements() != null) {
+                int num = cid.getImplements().size();
+                System.out.println(num);
+                if (num == 1) {
+                    String c2 = allFiles[0] + " ..|> " + cid.getImplements().toString().replace("[", "").replace("]", "");
+                    finalOp.add(c2 + "\n");
+                }else{
+                    String[] a = cid.getImplements().toString().replace("[","").replace("]", "").replaceAll(" ", "").split(",");
+                    for(String s : a){
+                        String c2 = allFiles[0] + " ..|> " + s;
+                        finalOp.add(c2 + "\n");
+                    }
+                }
+            }
 
         }
-
     }
-
 }
