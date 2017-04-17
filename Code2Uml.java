@@ -212,8 +212,18 @@ public class Code2Uml {
                 String[] singleParam;
 
                 int numOfPrm = md.getParameters().size();
+                
                 if (numOfPrm == 1) {
                     singleParam = param[0].split(" ");
+                    
+                    for(String a : javaFiles){
+                            if(a.equals(singleParam[0])){
+                                //System.out.println("code running "+parName[0]+"..>"+a);
+                                finalOp.add(allFiles[0]+"..>"+a);
+                                finalOp.add("\n");
+                            }
+                        }
+                    
                     if (md.getModifiers() == 1) {
                         methods = "+ " + md.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ") : " + md.getType();
                         allMethods.add(methods);
@@ -232,6 +242,13 @@ public class Code2Uml {
                     }
                     for (String prm : param) {
                         String[] parName = prm.replaceAll("^\\s+", "").replaceAll("\\s+$", "").split(" ");
+                        for(String a : javaFiles){
+                            if(a.equals(parName[0])){
+                                //System.out.println("code running "+parName[0]+"..>"+a);
+                                finalOp.add(allFiles[0]+"..>"+a);
+                                finalOp.add("\n");
+                            }
+                        }
                         methods = parName[1] + ":" + parName[0];
                         allMethods.add(methods);
                         allMethods.add(",");
@@ -262,13 +279,12 @@ public class Code2Uml {
 
             if (cid.getImplements() != null) {
                 int num = cid.getImplements().size();
-                System.out.println(num);
                 if (num == 1) {
                     String c2 = allFiles[0] + " ..|> " + cid.getImplements().toString().replace("[", "").replace("]", "");
                     finalOp.add(c2 + "\n");
-                }else{
-                    String[] a = cid.getImplements().toString().replace("[","").replace("]", "").replaceAll(" ", "").split(",");
-                    for(String s : a){
+                } else {
+                    String[] a = cid.getImplements().toString().replace("[", "").replace("]", "").replaceAll(" ", "").split(",");
+                    for (String s : a) {
                         String c2 = allFiles[0] + " ..|> " + s;
                         finalOp.add(c2 + "\n");
                     }
