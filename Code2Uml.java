@@ -36,7 +36,7 @@ public class Code2Uml {
 
         FileInputStream finStream = null;
         CompilationUnit cu;
-        String inputDirName = "C:\\Users\\Karan\\Downloads\\202 downloads\\cmpe202-master\\cmpe202-master\\umlparser\\uml-parser-test-2";
+        String inputDirName = "C:\\Users\\Karan\\Downloads\\202 downloads\\cmpe202-master\\cmpe202-master\\umlparser\\uml-parser-test-3";
         File inputFile = new File(inputDirName);
         File[] inputFileList = inputFile.listFiles();
         String classNames;
@@ -197,14 +197,17 @@ public class Code2Uml {
         public void visit(MethodDeclaration md, Object o) {
 
             String methods;
+
             if (md.getParameters() == null) {
 
                 if (md.getModifiers() == 1) {
-                    methods = "+ " + md.getName() + " : " + md.getType();
+                    methods = "+ " + md.getName() + "() : " + md.getType();
                     allMethods.add(methods);
-                } else {
-                    methods = "- " + md.getName() + " : " + md.getType();
+                    allMethods.add("\n");
+                } else if (md.getModifiers() == 0) {
+                    methods = "- " + md.getName() + "() : " + md.getType();
                     allMethods.add(methods);
+                    allMethods.add("\n");
                 }
             } else {
 
@@ -212,46 +215,51 @@ public class Code2Uml {
                 String[] singleParam;
 
                 int numOfPrm = md.getParameters().size();
-                
+
                 if (numOfPrm == 1) {
                     singleParam = param[0].split(" ");
-                    
-                    for(String a : javaFiles){
-                            if(a.equals(singleParam[0])){
-                                //System.out.println("code running "+parName[0]+"..>"+a);
-                                finalOp.add(allFiles[0]+"..>"+a);
-                                finalOp.add("\n");
-                            }
+
+                    for (String a : javaFiles) {
+                        if (a.equals(singleParam[0])) {
+                            //System.out.println("code running "+parName[0]+"..>"+a);
+                            finalOp.add(allFiles[0] + "..>" + a);
+                            finalOp.add("\n");
                         }
-                    
+                    }
+
                     if (md.getModifiers() == 1) {
                         methods = "+ " + md.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ") : " + md.getType();
                         allMethods.add(methods);
-                    } else {
+                        allMethods.add("\n");
+                    } else if (md.getModifiers() == 0) {
                         methods = "- " + md.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ") : " + md.getType();
                         allMethods.add(methods);
+                        allMethods.add("\n");
                     }
 
                 } else {
                     if (md.getModifiers() == 1) {
                         methods = "+ " + md.getName() + "(";
                         allMethods.add(methods);
-                    } else {
+                        allMethods.add("\n");
+                    } else if (md.getModifiers() == 0) {
                         methods = "- " + md.getName() + "(";
                         allMethods.add(methods);
+                        allMethods.add("\n");
                     }
                     for (String prm : param) {
                         String[] parName = prm.replaceAll("^\\s+", "").replaceAll("\\s+$", "").split(" ");
-                        for(String a : javaFiles){
-                            if(a.equals(parName[0])){
+                        for (String a : javaFiles) {
+                            if (a.equals(parName[0])) {
                                 //System.out.println("code running "+parName[0]+"..>"+a);
-                                finalOp.add(allFiles[0]+"..>"+a);
+                                finalOp.add(allFiles[0] + "..>" + a);
                                 finalOp.add("\n");
                             }
                         }
                         methods = parName[1] + ":" + parName[0];
                         allMethods.add(methods);
                         allMethods.add(",");
+                        
                     }
 
                     allMethods.add("):");
