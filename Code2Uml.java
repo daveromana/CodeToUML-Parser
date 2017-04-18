@@ -1,3 +1,4 @@
+
 import japa.parser.JavaParser;
 import japa.parser.ParseException;
 import japa.parser.ast.CompilationUnit;
@@ -13,11 +14,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 public class Code2Uml {
-    
+
     static ArrayList<String> javaFiles = new ArrayList();
     static String[] allFiles;
     static boolean isInterface;
-    
+    static String currentClass;
     //variables used in fetching all the fields
     static ArrayList<String> allVariables = new ArrayList<String>();
     static ArrayList<String> isAssosiatedTo = new ArrayList<String>();
@@ -25,13 +26,13 @@ public class Code2Uml {
     static ArrayList<String> finalOp = new ArrayList<>();
     static ArrayList<String> umlGeneratorIp = new ArrayList<>();
     static ArrayList<String> varNames = new ArrayList<>();
-    
     //variables used in finding all the methods
     static ArrayList<String> allMethods = new ArrayList<String>();
-    
     //variable to get interfaces and child classes
     static ArrayList<String> allInterfaceNClasses = new ArrayList<String>();
-    
+    //variables to identify getterSetter
+    static ArrayList<String> getterSetter = new ArrayList<>();
+
     public static void main(String[] args) throws IOException {
         FileInputStream finStream = null;
         CompilationUnit cu;
@@ -47,35 +48,30 @@ public class Code2Uml {
                 javaFiles.add(allFiles[0]);
             }
         }
-
         umlGeneratorIp.add("@startuml \n");
-        for (File f2 : inputFileList) {
-            classNames = f2.getName();
-            allFiles = classNames.split("\\.");
-            if ("java".equals(allFiles[1].toLowerCase())) {
-                //javaFiles.add(allFiles[0]);
-                String fileName = inputDirName + "/" + f2.getName();
+        for (String f : javaFiles) {
+            String fileName = inputDirName + "/" + f + ".java";
+            try {
+                currentClass = f;
+                finStream = new FileInputStream(fileName);
+                cu = JavaParser.parse(finStream);
+                isInterface = cu.toString().contains(" interface ");
+                //calling methods to find variables
+                GetVariables getVar = new GetVariables();
+                getVar.visit(cu, null);
+                //calling methods to get all methods in the test cases
+                GetMethods getMet = new GetMethods();
+                getMet.visit(cu, null);
+                //calling methods to find what classes being extended or interfaces being implemented
+                GetClassesOrInterfaces getCls = new GetClassesOrInterfaces();
+                getCls.visit(cu, 0);
+                createUMLInput();
+                //System.out.println(cu+"\n\n");
+            } catch (ParseException | FileNotFoundException e) {
+            } finally {
                 try {
-                    finStream = new FileInputStream(fileName);
-                    cu = JavaParser.parse(finStream);
-                    isInterface = cu.toString().contains(" interface ");
-                    //calling methods to find variables
-                    GetVariables getVar = new GetVariables();
-                    getVar.visit(cu, null);
-                    //calling methods to get all methods in the test cases
-                    GetMethods getMet = new GetMethods();
-                    getMet.visit(cu, null);
-                    //calling methods to find what classes being extended or interfaces being implemented
-                    GetClassesOrInterfaces getCls = new GetClassesOrInterfaces();
-                    getCls.visit(cu, 0);
-                    createUMLInput();
-                    //System.out.println(cu+"\n\n");
-                } catch (ParseException | FileNotFoundException e) {
-                } finally {
-                    try {
-                        finStream.close();
-                    } catch (IOException e) {
-                    }
+                    finStream.close();
+                } catch (IOException e) {
                 }
             }
         }
@@ -94,12 +90,12 @@ public class Code2Uml {
         // final call to plantUmlGenerator
         new ClassDiagramGenerator().createClassDiagram(umlGeneratorIpStr);
     }
-    
+
     private static void createUMLInput() {
         if (isInterface) {
-            finalOp.add("interface " + allFiles[0]);
+            finalOp.add("interface " + currentClass);
         } else {
-            finalOp.add("class " + allFiles[0]);
+            finalOp.add("class " + currentClass);
         }
         finalOp.add("{\n");
         allVariables.forEach((var) -> {
@@ -127,17 +123,17 @@ public class Code2Uml {
         allMethods.clear();
         varNames.clear();
     }
-    
+
     //Class for fetching variables in the test classes
     private static class GetVariables extends VoidVisitorAdapter {
+
         @Override
         public void visit(FieldDeclaration fd, Object obj) {
             String classVariables;
             String variableWdBracs = fd.getVariables().toString();
             ArrayList<String> types = new ArrayList<>();
             types.add(fd.getType().toString());
-            varNames.add(fd.getVariables().toString().replaceAll("\\[", "").replaceAll("]", ""));
-            
+            varNames.add(fd.getVariables().toString().replaceAll("\\[", "").replaceAll("]", "").replaceAll("^\\s+", "").replaceAll("\\s+$", ""));
             if (fd.getModifiers() == 2) {
                 classVariables = "- " + variableWdBracs.substring(1, variableWdBracs.length() - 1) + " : " + fd.getType();
                 allVariables.add(classVariables);
@@ -145,7 +141,7 @@ public class Code2Uml {
                 classVariables = "+ " + variableWdBracs.substring(1, variableWdBracs.length() - 1) + " : " + fd.getType();
                 allVariables.add(classVariables);
             }
-            //Association Logic goes here..
+            //Association Logic goes here..if there is double association then omit it
             for (String s : types) {
                 for (String className : javaFiles) {
                     if (isAssosiatedTo.contains(s)) {
@@ -153,112 +149,122 @@ public class Code2Uml {
                     }
                     if (className.equals(s)) {
                         isAssosiatedTo.add(s);
-                        finalOp.add(allFiles[0] + "--" + s);
+                        finalOp.add(currentClass + "--" + s);
                         finalOp.add("\n");
-                        repAssociation.add(s + "--" + allFiles[0]);
+                        repAssociation.add(s + "--" + currentClass);
                     } else if (s.contains("<" + className + ">")) {
                         int beginIndex = s.indexOf("<");
                         int endIndex = s.indexOf(">");
                         isAssosiatedTo.add(s.substring(beginIndex + 1, endIndex));
-                        finalOp.add(allFiles[0] + "--" + s.substring(beginIndex + 1, endIndex));
+                        finalOp.add(currentClass + "--" + s.substring(beginIndex + 1, endIndex));
                         finalOp.add("\n");
-                        repAssociation.add(s.substring(beginIndex + 1, endIndex) + "--" + allFiles[0]);
+                        repAssociation.add(s.substring(beginIndex + 1, endIndex) + "--" + currentClass);
                     }
                 }
             }
         }
     }
-    
+
     //Class for extracting all methods in the test codes
     private static class GetMethods extends VoidVisitorAdapter<Object> {
+
         @Override
         public void visit(MethodDeclaration md, Object o) {
             String methods;
-            
-            
-            if (md.getParameters() == null) {
-                if (md.getModifiers() == 1) {
-                    methods = "+ " + md.getName() + "() : " + md.getType();
-                    allMethods.add(methods);
-                    allMethods.add("\n");
-                } else if (md.getModifiers() == 0) {
-                    methods = "- " + md.getName() + "() : " + md.getType();
-                    allMethods.add(methods);
-                    allMethods.add("\n");
-                }
-            } else {
-                String[] param = md.getParameters().toString().replace("]", "").replace("[", "").split(",");
-                String[] singleParam;
-                int numOfPrm = md.getParameters().size();
-                if (numOfPrm == 1) {
-                    singleParam = param[0].split(" ");
-                    for (String a : javaFiles) {
-                        if (a.equals(singleParam[0])) {
-                            //System.out.println("code running "+parName[0]+"..>"+a);
-                            finalOp.add(allFiles[0] + "..>" + a);
-                            finalOp.add("\n");
-                        }
-                    }
-                    if (md.getModifiers() == 1) {
-                        methods = "+ " + md.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ") : " + md.getType();
-                        allMethods.add(methods);
-                        allMethods.add("\n");
-                    } else if (md.getModifiers() == 0) {
-                        methods = "- " + md.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ") : " + md.getType();
-                        allMethods.add(methods);
-                        allMethods.add("\n");
-                    }
+            for (String s : varNames) {
+                if (md.getName().toLowerCase().equals("get" + s) || md.getName().toLowerCase().equals("set" + s)) {
+                    break;
                 } else {
-                    if (md.getModifiers() == 1) {
-                        methods = "+ " + md.getName() + "(";
-                        allMethods.add(methods);
-                        allMethods.add("\n");
-                    } else if (md.getModifiers() == 0) {
-                        methods = "- " + md.getName() + "(";
-                        allMethods.add(methods);
-                        allMethods.add("\n");
-                    }
-                    for (String prm : param) {
-                        String[] parName = prm.replaceAll("^\\s+", "").replaceAll("\\s+$", "").split(" ");
-                        for (String a : javaFiles) {
-                            if (a.equals(parName[0])) {
-                                //System.out.println("code running "+parName[0]+"..>"+a);
-                                finalOp.add(allFiles[0] + "..>" + a);
-                                finalOp.add("\n");
-                            }
+                    if (md.getParameters() == null) {
+                        if (md.getModifiers() == 1) {
+                            methods = "+ " + md.getName() + "() : " + md.getType();
+                            allMethods.add(methods);
+                            allMethods.add("\n");
+                            break;
+                        } else if (md.getModifiers() == 0) {
+                            methods = "- " + md.getName() + "() : " + md.getType();
+                            allMethods.add(methods);
+                            allMethods.add("\n");
+                            break;
                         }
-                        methods = parName[1] + ":" + parName[0];
-                        allMethods.add(methods);
-                        allMethods.add(",");
+                    } else {
+                        String[] param = md.getParameters().toString().replace("]", "").replace("[", "").split(",");
+                        String[] singleParam;
+                        int numOfPrm = md.getParameters().size();
+                        if (numOfPrm == 1) {
+                            singleParam = param[0].split(" ");
+                            for (String a : javaFiles) {
+                                if (a.equals(singleParam[0])) {
+                                    //System.out.println("code running "+parName[0]+"..>"+a);
+                                    finalOp.add(currentClass + "..>" + a);
+                                    finalOp.add("\n");
+                                }
+                            }
+                            if (md.getModifiers() == 1) {
+                                methods = "+ " + md.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ") : " + md.getType();
+                                allMethods.add(methods);
+                                allMethods.add("\n");
+                                break;
+                            } else if (md.getModifiers() == 0) {
+                                methods = "- " + md.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ") : " + md.getType();
+                                allMethods.add(methods);
+                                allMethods.add("\n");
+                                break;
+                            }
+                        } else {
+                            if (md.getModifiers() == 1) {
+                                methods = "+ " + md.getName() + "(";
+                                allMethods.add(methods);
+                                break;
+                            } else if (md.getModifiers() == 0) {
+                                methods = "- " + md.getName() + "(";
+                                allMethods.add(methods);
+                                break;
+                            }
+                            for (String prm : param) {
+                                String[] parName = prm.replaceAll("^\\s+", "").replaceAll("\\s+$", "").split(" ");
+                                for (String a : javaFiles) {
+                                    if (a.equals(parName[0])) {
+                                        //System.out.println("code running "+parName[0]+"..>"+a);
+                                        finalOp.add(currentClass + "..>" + a);
+                                        finalOp.add("\n");
+                                    }
+                                }
+                                methods = parName[1] + ":" + parName[0];
+                                allMethods.add(methods);
+                                allMethods.add(",");
+                            }
+                            allMethods.add("):");
+                            allMethods.add(md.getType().toString());
+                        }
+                        if (numOfPrm > 1) {
+                            allMethods.remove(allMethods.lastIndexOf(","));
+                        }
                     }
-                    allMethods.add("):");
-                    allMethods.add(md.getType().toString());
-                }
-                if (numOfPrm > 1) {
-                    allMethods.remove(allMethods.lastIndexOf(","));
                 }
             }
         }
     }
-    
+
     //Class for Extracting all the classes
     private static class GetClassesOrInterfaces extends VoidVisitorAdapter {
+
         @Override
         public void visit(ClassOrInterfaceDeclaration cid, Object obj) {
             ArrayList<String> classesExtended = new ArrayList<>();
             if (cid.getExtends() != null) {
-                String c1 = allFiles[0] + " --|> " + cid.getExtends().toString().replace("[", "").replace("]", "");
+                String c1 = currentClass + " --|> " + cid.getExtends().toString().replace("[", "").replace("]", "");
                 finalOp.add(c1 + "\n");
             }
             if (cid.getImplements() != null) {
                 int num = cid.getImplements().size();
                 if (num == 1) {
-                    String c2 = allFiles[0] + " ..|> " + cid.getImplements().toString().replace("[", "").replace("]", "");
+                    String c2 = currentClass + " ..|> " + cid.getImplements().toString().replace("[", "").replace("]", "");
                     finalOp.add(c2 + "\n");
                 } else {
                     String[] a = cid.getImplements().toString().replace("[", "").replace("]", "").replaceAll(" ", "").split(",");
                     for (String s : a) {
-                        String c2 = allFiles[0] + " ..|> " + s;
+                        String c2 = currentClass + " ..|> " + s;
                         finalOp.add(c2 + "\n");
                     }
                 }
