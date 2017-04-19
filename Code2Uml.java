@@ -30,6 +30,8 @@ public class Code2Uml {
     //variables used in finding all the methods
     static ArrayList<String> allMethods = new ArrayList<String>();
     static ArrayList<String> methodNames = new ArrayList<String>();
+    static ArrayList<String> repDependency = new ArrayList<String>();
+    static ArrayList<String> isDependentTo = new ArrayList<String>();
     //variable to get interfaces and child classes
     static ArrayList<String> allInterfaceNClasses = new ArrayList<String>();
     //variables to identify getterSetter
@@ -208,10 +210,16 @@ public class Code2Uml {
                     if (numOfPrm == 1) {
                         singleParam = param[0].split(" ");
                         for (String a : javaFiles) {
-                            if (a.equals(singleParam[0])) {
-                                //System.out.println("code running "+parName[0]+"..>"+a);
-                                finalOp.add(currentClass + "..>" + a);
-                                finalOp.add("\n");
+                            if (isDependentTo.contains(currentClass + "..>" + a)) {
+                                break;
+                            } else {
+                                if (a.equals(singleParam[0])) {
+                                    isDependentTo.add(currentClass + "..>" + a);
+                                    finalOp.add(currentClass + "..>" + a);
+                                    finalOp.add("\n");
+                                    break;
+                                    //repDependency.add(a+ "<..")
+                                }
                             }
                         }
                         if (md.getModifiers() == 1) {
@@ -235,9 +243,13 @@ public class Code2Uml {
                             String[] parName = prm.replaceAll("^\\s+", "").replaceAll("\\s+$", "").split(" ");
                             for (String a : javaFiles) {
                                 if (a.equals(parName[0])) {
-                                    //System.out.println("code running "+parName[0]+"..>"+a);
-                                    finalOp.add(currentClass + "..>" + a);
-                                    finalOp.add("\n");
+                                    if (isDependentTo.contains(currentClass + "..>" + a)) {
+                                        break;
+                                    } else {
+                                        isDependentTo.add(currentClass + "..>" + a);
+                                        finalOp.add(currentClass + "..>" + a);
+                                        finalOp.add("\n");
+                                    }
                                 }
                             }
                             methods = parName[1] + ":" + parName[0];
@@ -287,8 +299,13 @@ public class Code2Uml {
                         for (String a : javaFiles) {
                             if (a.equals(singleParam[0])) {
                                 //System.out.println("code running "+parName[0]+"..>"+a);
-                                finalOp.add(currentClass + "..>" + a);
-                                finalOp.add("\n");
+                                if (isDependentTo.contains(currentClass + "..>" + a)) {
+                                    break;
+                                } else {
+                                    isDependentTo.add(currentClass + "..>" + a);
+                                    finalOp.add(currentClass + "..>" + a);
+                                    finalOp.add("\n");
+                                }
                             }
                         }
                         if (md.getModifiers() == 1) {
@@ -311,8 +328,10 @@ public class Code2Uml {
                         for (String prm : param) {
                             String[] parName = prm.replaceAll("^\\s+", "").replaceAll("\\s+$", "").split(" ");
                             for (String a : javaFiles) {
-                                if (a.equals(parName[0])) {
-                                    //System.out.println("code running "+parName[0]+"..>"+a);
+                                if (isDependentTo.contains(currentClass + "..>" + a)) {
+                                    break;
+                                } else {
+                                    isDependentTo.add(currentClass + "..>" + a);
                                     finalOp.add(currentClass + "..>" + a);
                                     finalOp.add("\n");
                                 }
