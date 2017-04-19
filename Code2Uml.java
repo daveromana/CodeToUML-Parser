@@ -15,6 +15,7 @@ import java.util.Iterator;
 
 public class Code2Uml {
 
+    static CompilationUnit cu;
     static ArrayList<String> javaFiles = new ArrayList();
     static String[] allFiles;
     static boolean isInterface;
@@ -28,6 +29,7 @@ public class Code2Uml {
     static ArrayList<String> varNames = new ArrayList<>();
     //variables used in finding all the methods
     static ArrayList<String> allMethods = new ArrayList<String>();
+    static ArrayList<String> methodNames = new ArrayList<String>();
     //variable to get interfaces and child classes
     static ArrayList<String> allInterfaceNClasses = new ArrayList<String>();
     //variables to identify getterSetter
@@ -35,8 +37,7 @@ public class Code2Uml {
 
     public static void main(String[] args) throws IOException {
         FileInputStream finStream = null;
-        CompilationUnit cu;
-        String inputDirName = "C:\\Users\\Karan\\Downloads\\202 downloads\\cmpe202-master\\cmpe202-master\\umlparser\\uml-parser-test-3";
+        String inputDirName = "C:\\Users\\Karan\\Downloads\\202 downloads\\cmpe202-master\\cmpe202-master\\umlparser\\uml-parser-test-1";
         File inputFile = new File(inputDirName);
         File[] inputFileList = inputFile.listFiles();
         String classNames;
@@ -130,15 +131,15 @@ public class Code2Uml {
         @Override
         public void visit(FieldDeclaration fd, Object obj) {
             String classVariables;
-            String variableWdBracs = fd.getVariables().toString();
+            String variables = fd.getVariables().toString().replaceAll("\\[", "").replaceAll("]", "").replaceAll("^\\s+", "").replaceAll("\\s+$", "");
             ArrayList<String> types = new ArrayList<>();
             types.add(fd.getType().toString());
             varNames.add(fd.getVariables().toString().replaceAll("\\[", "").replaceAll("]", "").replaceAll("^\\s+", "").replaceAll("\\s+$", ""));
-            if (fd.getModifiers() == 2) {
-                classVariables = "- " + variableWdBracs.substring(1, variableWdBracs.length() - 1) + " : " + fd.getType();
+            if (fd.getModifiers() == 1) {
+                classVariables = "+ " + variables + " : " + fd.getType();
                 allVariables.add(classVariables);
-            } else if (fd.getModifiers() == 1) {
-                classVariables = "+ " + variableWdBracs.substring(1, variableWdBracs.length() - 1) + " : " + fd.getType();
+            } else if (fd.getModifiers() == 2) {
+                classVariables = "- " + variables + " : " + fd.getType();
                 allVariables.add(classVariables);
             }
             //Association Logic goes here..if there is double association then omit it
@@ -170,9 +171,21 @@ public class Code2Uml {
 
         @Override
         public void visit(MethodDeclaration md, Object o) {
+            methodNames.add(md.getName());
             String methods;
             for (String s : varNames) {
                 if (md.getName().toLowerCase().equals("get" + s) || md.getName().toLowerCase().equals("set" + s)) {
+                    Iterator<String> iter = allVariables.iterator();
+                    String newVar = new String();
+                    while (iter.hasNext()) {
+                        String str = iter.next();
+                        String[] a = str.split(" ");
+                        if (a[1].equals(s)) {
+                            iter.remove();
+                            newVar = str.replace("-", "+");
+                        }
+                    }
+                    allVariables.add(newVar);
                     break;
                 } else {
                     if (md.getParameters() == null) {
