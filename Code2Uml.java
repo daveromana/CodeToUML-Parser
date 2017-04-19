@@ -37,7 +37,7 @@ public class Code2Uml {
 
     public static void main(String[] args) throws IOException {
         FileInputStream finStream = null;
-        String inputDirName = "C:\\Users\\Karan\\Downloads\\202 downloads\\cmpe202-master\\cmpe202-master\\umlparser\\uml-parser-test-1";
+        String inputDirName = "C:\\Users\\Karan\\Downloads\\202 downloads\\cmpe202-master\\cmpe202-master\\umlparser\\uml-parser-test-4";
         File inputFile = new File(inputDirName);
         File[] inputFileList = inputFile.listFiles();
         String classNames;
@@ -72,6 +72,7 @@ public class Code2Uml {
             } finally {
                 try {
                     finStream.close();
+                    //break;
                 } catch (IOException e) {
                 }
             }
@@ -134,15 +135,8 @@ public class Code2Uml {
             String variables = fd.getVariables().toString().replaceAll("\\[", "").replaceAll("]", "").replaceAll("^\\s+", "").replaceAll("\\s+$", "");
             ArrayList<String> types = new ArrayList<>();
             types.add(fd.getType().toString());
-            varNames.add(fd.getVariables().toString().replaceAll("\\[", "").replaceAll("]", "").replaceAll("^\\s+", "").replaceAll("\\s+$", ""));
-            if (fd.getModifiers() == 1) {
-                classVariables = "+ " + variables + " : " + fd.getType();
-                allVariables.add(classVariables);
-            } else if (fd.getModifiers() == 2) {
-                classVariables = "- " + variables + " : " + fd.getType();
-                allVariables.add(classVariables);
-            }
-            //Association Logic goes here..if there is double association then omit it
+            boolean isAssociated = false;
+            //Association Logic goes here..if there is double association then omit it 
             for (String s : types) {
                 for (String className : javaFiles) {
                     if (isAssosiatedTo.contains(s)) {
@@ -154,6 +148,7 @@ public class Code2Uml {
                         finalOp.add("\n");
                         repAssociation.add(s + "--" + currentClass);
                     } else if (s.contains("<" + className + ">")) {
+                        isAssociated = true;
                         int beginIndex = s.indexOf("<");
                         int endIndex = s.indexOf(">");
                         isAssosiatedTo.add(s.substring(beginIndex + 1, endIndex));
@@ -163,6 +158,30 @@ public class Code2Uml {
                     }
                 }
             }
+
+            varNames.add(fd.getVariables().toString().replaceAll("\\[", "").replaceAll("]", "").trim());
+            String[] v;
+            if (variables.contains("=")) {
+                if (!isAssociated) {
+                    v = variables.split("=");
+                    if (fd.getModifiers() == 1) {
+                        classVariables = "+ " + v[0].trim() + " : " + fd.getType();
+                        allVariables.add(classVariables);
+                    } else if (fd.getModifiers() == 2) {
+                        classVariables = "- " + v[0].trim() + " : " + fd.getType();
+                        allVariables.add(classVariables);
+                    }
+                }
+            } else {
+                if (fd.getModifiers() == 1) {
+                    classVariables = "+ " + variables + " : " + fd.getType();
+                    allVariables.add(classVariables);
+                } else if (fd.getModifiers() == 2) {
+                    classVariables = "- " + variables + " : " + fd.getType();
+                    allVariables.add(classVariables);
+                }
+            }
+
         }
     }
 
@@ -173,86 +192,154 @@ public class Code2Uml {
         public void visit(MethodDeclaration md, Object o) {
             methodNames.add(md.getName());
             String methods;
-            for (String s : varNames) {
-                if (md.getName().toLowerCase().equals("get" + s) || md.getName().toLowerCase().equals("set" + s)) {
-                    Iterator<String> iter = allVariables.iterator();
-                    String newVar = new String();
-                    while (iter.hasNext()) {
-                        String str = iter.next();
-                        String[] a = str.split(" ");
-                        if (a[1].equals(s)) {
-                            iter.remove();
-                            newVar = str.replace("-", "+");
-                        }
+            if (varNames.isEmpty()) {
+                if (md.getParameters() == null) {
+                    if (md.getModifiers() == 1) {
+                        methods = "+ " + md.getName() + "() : " + md.getType();
+                        allMethods.add(methods);
+                        allMethods.add("\n");
+
+                    } else if (md.getModifiers() == 0) {
+                        methods = "- " + md.getName() + "() : " + md.getType();
+                        allMethods.add(methods);
+                        allMethods.add("\n");
+
                     }
-                    allVariables.add(newVar);
-                    break;
                 } else {
-                    if (md.getParameters() == null) {
+                    String[] param = md.getParameters().toString().replace("]", "").replace("[", "").split(",");
+                    String[] singleParam;
+                    int numOfPrm = md.getParameters().size();
+                    if (numOfPrm == 1) {
+                        singleParam = param[0].split(" ");
+                        for (String a : javaFiles) {
+                            if (a.equals(singleParam[0])) {
+                                //System.out.println("code running "+parName[0]+"..>"+a);
+                                finalOp.add(currentClass + "..>" + a);
+                                finalOp.add("\n");
+                            }
+                        }
                         if (md.getModifiers() == 1) {
-                            methods = "+ " + md.getName() + "() : " + md.getType();
+                            methods = "+ " + md.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ") : " + md.getType();
                             allMethods.add(methods);
                             allMethods.add("\n");
-                            break;
+
                         } else if (md.getModifiers() == 0) {
-                            methods = "- " + md.getName() + "() : " + md.getType();
+                            methods = "- " + md.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ") : " + md.getType();
                             allMethods.add(methods);
                             allMethods.add("\n");
-                            break;
+
                         }
                     } else {
-                        String[] param = md.getParameters().toString().replace("]", "").replace("[", "").split(",");
-                        String[] singleParam;
-                        int numOfPrm = md.getParameters().size();
-                        if (numOfPrm == 1) {
-                            singleParam = param[0].split(" ");
+                        if (md.getModifiers() == 1) {
+                            methods = "+ " + md.getName() + "(";
+                            allMethods.add(methods);
+
+                        } else if (md.getModifiers() == 0) {
+                            methods = "- " + md.getName() + "(";
+                            allMethods.add(methods);
+
+                        }
+                        for (String prm : param) {
+                            String[] parName = prm.replaceAll("^\\s+", "").replaceAll("\\s+$", "").split(" ");
                             for (String a : javaFiles) {
-                                if (a.equals(singleParam[0])) {
+                                if (a.equals(parName[0])) {
                                     //System.out.println("code running "+parName[0]+"..>"+a);
                                     finalOp.add(currentClass + "..>" + a);
                                     finalOp.add("\n");
                                 }
                             }
-                            if (md.getModifiers() == 1) {
-                                methods = "+ " + md.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ") : " + md.getType();
-                                allMethods.add(methods);
-                                allMethods.add("\n");
-                                break;
-                            } else if (md.getModifiers() == 0) {
-                                methods = "- " + md.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ") : " + md.getType();
-                                allMethods.add(methods);
-                                allMethods.add("\n");
-                                break;
+                            methods = parName[1] + ":" + parName[0];
+                            allMethods.add(methods);
+                            allMethods.add(",");
+                        }
+                        allMethods.add("):");
+                        allMethods.add(md.getType().toString());
+                    }
+                    if (numOfPrm > 1) {
+                        allMethods.remove(allMethods.lastIndexOf(","));
+                    }
+                }
+            } else {
+                for (String s : varNames) {
+                    if (md.getName().toLowerCase().equals("get" + s) || md.getName().toLowerCase().equals("set" + s)) {
+                        Iterator<String> iter = allVariables.iterator();
+                        String newVar = new String();
+                        while (iter.hasNext()) {
+                            String str = iter.next();
+                            String[] a = str.split(" ");
+                            if (a[1].equals(s)) {
+                                iter.remove();
+                                newVar = str.replace("-", "+");
                             }
-                        } else {
-                            if (md.getModifiers() == 1) {
-                                methods = "+ " + md.getName() + "(";
-                                allMethods.add(methods);
-                                break;
-                            } else if (md.getModifiers() == 0) {
-                                methods = "- " + md.getName() + "(";
-                                allMethods.add(methods);
-                                break;
+                        }
+                        allVariables.add(newVar);
+                        break;
+                    }
+                }
+                if (md.getParameters() == null) {
+                    if (md.getModifiers() == 1) {
+                        methods = "+ " + md.getName() + "() : " + md.getType();
+                        allMethods.add(methods);
+                        allMethods.add("\n");
+
+                    } else if (md.getModifiers() == 0) {
+                        methods = "- " + md.getName() + "() : " + md.getType();
+                        allMethods.add(methods);
+                        allMethods.add("\n");
+
+                    }
+                } else {
+                    String[] param = md.getParameters().toString().replace("]", "").replace("[", "").split(",");
+                    String[] singleParam;
+                    int numOfPrm = md.getParameters().size();
+                    if (numOfPrm == 1) {
+                        singleParam = param[0].split(" ");
+                        for (String a : javaFiles) {
+                            if (a.equals(singleParam[0])) {
+                                //System.out.println("code running "+parName[0]+"..>"+a);
+                                finalOp.add(currentClass + "..>" + a);
+                                finalOp.add("\n");
                             }
-                            for (String prm : param) {
-                                String[] parName = prm.replaceAll("^\\s+", "").replaceAll("\\s+$", "").split(" ");
-                                for (String a : javaFiles) {
-                                    if (a.equals(parName[0])) {
-                                        //System.out.println("code running "+parName[0]+"..>"+a);
-                                        finalOp.add(currentClass + "..>" + a);
-                                        finalOp.add("\n");
-                                    }
+                        }
+                        if (md.getModifiers() == 1) {
+                            methods = "+ " + md.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ") : " + md.getType();
+                            allMethods.add(methods);
+                            allMethods.add("\n");
+
+                        } else if (md.getModifiers() == 0) {
+                            methods = "- " + md.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ") : " + md.getType();
+                            allMethods.add(methods);
+                            allMethods.add("\n");
+
+                        }
+                    } else {
+                        if (md.getModifiers() == 1) {
+                            methods = "+ " + md.getName() + "(";
+                            allMethods.add(methods);
+
+                        } else if (md.getModifiers() == 0) {
+                            methods = "- " + md.getName() + "(";
+                            allMethods.add(methods);
+
+                        }
+                        for (String prm : param) {
+                            String[] parName = prm.replaceAll("^\\s+", "").replaceAll("\\s+$", "").split(" ");
+                            for (String a : javaFiles) {
+                                if (a.equals(parName[0])) {
+                                    //System.out.println("code running "+parName[0]+"..>"+a);
+                                    finalOp.add(currentClass + "..>" + a);
+                                    finalOp.add("\n");
                                 }
-                                methods = parName[1] + ":" + parName[0];
-                                allMethods.add(methods);
-                                allMethods.add(",");
                             }
-                            allMethods.add("):");
-                            allMethods.add(md.getType().toString());
+                            methods = parName[1] + ":" + parName[0];
+                            allMethods.add(methods);
+                            allMethods.add(",");
                         }
-                        if (numOfPrm > 1) {
-                            allMethods.remove(allMethods.lastIndexOf(","));
-                        }
+                        allMethods.add("):");
+                        allMethods.add(md.getType().toString());
+                    }
+                    if (numOfPrm > 1) {
+                        allMethods.remove(allMethods.lastIndexOf(","));
                     }
                 }
             }
