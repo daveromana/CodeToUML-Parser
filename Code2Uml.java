@@ -158,7 +158,6 @@ public class Code2Uml {
                     }
                 }
             }
-
             varNames.add(fd.getVariables().toString().replaceAll("\\[", "").replaceAll("]", "").trim());
             String[] v;
             if (variables.contains("=")) {
@@ -181,7 +180,6 @@ public class Code2Uml {
                     allVariables.add(classVariables);
                 }
             }
-
         }
     }
 
@@ -198,12 +196,10 @@ public class Code2Uml {
                         methods = "+ " + md.getName() + "() : " + md.getType();
                         allMethods.add(methods);
                         allMethods.add("\n");
-
                     } else if (md.getModifiers() == 0) {
                         methods = "- " + md.getName() + "() : " + md.getType();
                         allMethods.add(methods);
                         allMethods.add("\n");
-
                     }
                 } else {
                     String[] param = md.getParameters().toString().replace("]", "").replace("[", "").split(",");
@@ -222,22 +218,18 @@ public class Code2Uml {
                             methods = "+ " + md.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ") : " + md.getType();
                             allMethods.add(methods);
                             allMethods.add("\n");
-
                         } else if (md.getModifiers() == 0) {
                             methods = "- " + md.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ") : " + md.getType();
                             allMethods.add(methods);
                             allMethods.add("\n");
-
                         }
                     } else {
                         if (md.getModifiers() == 1) {
                             methods = "+ " + md.getName() + "(";
                             allMethods.add(methods);
-
                         } else if (md.getModifiers() == 0) {
                             methods = "- " + md.getName() + "(";
                             allMethods.add(methods);
-
                         }
                         for (String prm : param) {
                             String[] parName = prm.replaceAll("^\\s+", "").replaceAll("\\s+$", "").split(" ");
@@ -281,12 +273,10 @@ public class Code2Uml {
                         methods = "+ " + md.getName() + "() : " + md.getType();
                         allMethods.add(methods);
                         allMethods.add("\n");
-
                     } else if (md.getModifiers() == 0) {
                         methods = "- " + md.getName() + "() : " + md.getType();
                         allMethods.add(methods);
                         allMethods.add("\n");
-
                     }
                 } else {
                     String[] param = md.getParameters().toString().replace("]", "").replace("[", "").split(",");
@@ -305,22 +295,18 @@ public class Code2Uml {
                             methods = "+ " + md.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ") : " + md.getType();
                             allMethods.add(methods);
                             allMethods.add("\n");
-
                         } else if (md.getModifiers() == 0) {
                             methods = "- " + md.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ") : " + md.getType();
                             allMethods.add(methods);
                             allMethods.add("\n");
-
                         }
                     } else {
                         if (md.getModifiers() == 1) {
                             methods = "+ " + md.getName() + "(";
                             allMethods.add(methods);
-
                         } else if (md.getModifiers() == 0) {
                             methods = "- " + md.getName() + "(";
                             allMethods.add(methods);
-
                         }
                         for (String prm : param) {
                             String[] parName = prm.replaceAll("^\\s+", "").replaceAll("\\s+$", "").split(" ");
