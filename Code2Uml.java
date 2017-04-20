@@ -3,6 +3,7 @@ import japa.parser.JavaParser;
 import japa.parser.ParseException;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.body.ClassOrInterfaceDeclaration;
+import japa.parser.ast.body.ConstructorDeclaration;
 import japa.parser.ast.body.FieldDeclaration;
 import japa.parser.ast.body.MethodDeclaration;
 import japa.parser.ast.visitor.VoidVisitorAdapter;
@@ -27,6 +28,8 @@ public class Code2Uml {
     static ArrayList<String> finalOp = new ArrayList<>();
     static ArrayList<String> umlGeneratorIp = new ArrayList<>();
     static ArrayList<String> varNames = new ArrayList<>();
+    //variables to collect Constructors
+    static ArrayList<String> allConstructors = new ArrayList<>();
     //variables used in finding all the methods
     static ArrayList<String> allMethods = new ArrayList<String>();
     static ArrayList<String> methodNames = new ArrayList<String>();
@@ -62,6 +65,9 @@ public class Code2Uml {
                 //calling methods to find variables
                 GetVariables getVar = new GetVariables();
                 getVar.visit(cu, null);
+                //calling methods to fetch constructors
+                GetConstructors gC = new GetConstructors();
+                gC.visit(cu, null);
                 //calling methods to get all methods in the test cases
                 GetMethods getMet = new GetMethods();
                 getMet.visit(cu, null);
@@ -113,6 +119,10 @@ public class Code2Uml {
                 iter.remove();
             });
         }
+        for (String a : allConstructors) {
+            finalOp.add(a);
+            //finalOp.add("\n");
+        }
         for (String a : allMethods) {
             finalOp.add(a);
         }
@@ -124,6 +134,7 @@ public class Code2Uml {
         finalOp.clear();
         allVariables.clear();
         isAssosiatedTo.clear();
+        allConstructors.clear();
         allMethods.clear();
         varNames.clear();
     }
@@ -190,7 +201,6 @@ public class Code2Uml {
 
         @Override
         public void visit(MethodDeclaration md, Object o) {
-            methodNames.add(md.getName());
             String methods;
             if (varNames.isEmpty()) {
                 if (md.getParameters() == null) {
@@ -202,6 +212,10 @@ public class Code2Uml {
                         methods = "- " + md.getName() + "() : " + md.getType();
                         allMethods.add(methods);
                         allMethods.add("\n");
+                    } else if (md.getModifiers() == 1025) {
+                        methods = "+ " + md.getName() + "() : " + md.getType();
+                        allMethods.add(methods);
+                        allMethods.add("\n");
                     }
                 } else {
                     String[] param = md.getParameters().toString().replace("]", "").replace("[", "").split(",");
@@ -209,16 +223,18 @@ public class Code2Uml {
                     int numOfPrm = md.getParameters().size();
                     if (numOfPrm == 1) {
                         singleParam = param[0].split(" ");
-                        for (String a : javaFiles) {
-                            if (isDependentTo.contains(currentClass + "..>" + a)) {
-                                break;
-                            } else {
-                                if (a.equals(singleParam[0])) {
-                                    isDependentTo.add(currentClass + "..>" + a);
-                                    finalOp.add(currentClass + "..>" + a);
-                                    finalOp.add("\n");
+                        if (isInterface == false) {
+                            for (String a : javaFiles) {
+                                if (isDependentTo.contains(currentClass + "..>" + a)) {
                                     break;
-                                    //repDependency.add(a+ "<..")
+                                } else {
+                                    if (a.equals(singleParam[0])) {
+                                        isDependentTo.add(currentClass + "..>" + a);
+                                        finalOp.add(currentClass + "..>" + a);
+                                        finalOp.add("\n");
+                                        break;
+                                        //repDependency.add(a+ "<..")
+                                    }
                                 }
                             }
                         }
@@ -241,14 +257,16 @@ public class Code2Uml {
                         }
                         for (String prm : param) {
                             String[] parName = prm.replaceAll("^\\s+", "").replaceAll("\\s+$", "").split(" ");
-                            for (String a : javaFiles) {
-                                if (a.equals(parName[0])) {
-                                    if (isDependentTo.contains(currentClass + "..>" + a)) {
-                                        break;
-                                    } else {
-                                        isDependentTo.add(currentClass + "..>" + a);
-                                        finalOp.add(currentClass + "..>" + a);
-                                        finalOp.add("\n");
+                            if (isInterface == false) {
+                                for (String a : javaFiles) {
+                                    if (a.equals(parName[0])) {
+                                        if (isDependentTo.contains(currentClass + "..>" + a)) {
+                                            break;
+                                        } else {
+                                            isDependentTo.add(currentClass + "..>" + a);
+                                            finalOp.add(currentClass + "..>" + a);
+                                            finalOp.add("\n");
+                                        }
                                     }
                                 }
                             }
@@ -296,15 +314,17 @@ public class Code2Uml {
                     int numOfPrm = md.getParameters().size();
                     if (numOfPrm == 1) {
                         singleParam = param[0].split(" ");
-                        for (String a : javaFiles) {
-                            if (a.equals(singleParam[0])) {
-                                //System.out.println("code running "+parName[0]+"..>"+a);
-                                if (isDependentTo.contains(currentClass + "..>" + a)) {
-                                    break;
-                                } else {
-                                    isDependentTo.add(currentClass + "..>" + a);
-                                    finalOp.add(currentClass + "..>" + a);
-                                    finalOp.add("\n");
+                        if (isInterface == false) {
+                            for (String a : javaFiles) {
+                                if (a.equals(singleParam[0])) {
+                                    //System.out.println("code running "+parName[0]+"..>"+a);
+                                    if (isDependentTo.contains(currentClass + "..>" + a)) {
+                                        break;
+                                    } else {
+                                        isDependentTo.add(currentClass + "..>" + a);
+                                        finalOp.add(currentClass + "..>" + a);
+                                        finalOp.add("\n");
+                                    }
                                 }
                             }
                         }
@@ -328,12 +348,14 @@ public class Code2Uml {
                         for (String prm : param) {
                             String[] parName = prm.replaceAll("^\\s+", "").replaceAll("\\s+$", "").split(" ");
                             for (String a : javaFiles) {
-                                if (isDependentTo.contains(currentClass + "..>" + a)) {
-                                    break;
-                                } else {
-                                    isDependentTo.add(currentClass + "..>" + a);
-                                    finalOp.add(currentClass + "..>" + a);
-                                    finalOp.add("\n");
+                                if (isInterface == false) {
+                                    if (isDependentTo.contains(currentClass + "..>" + a)) {
+                                        break;
+                                    } else {
+                                        isDependentTo.add(currentClass + "..>" + a);
+                                        finalOp.add(currentClass + "..>" + a);
+                                        finalOp.add("\n");
+                                    }
                                 }
                             }
                             methods = parName[1] + ":" + parName[0];
@@ -351,7 +373,85 @@ public class Code2Uml {
         }
     }
 
-    //Class for Extracting all the classes
+    //Class for Extracting all the Constructors
+    private static class GetConstructors extends VoidVisitorAdapter<Object> {
+
+        @Override
+        public void visit(ConstructorDeclaration consDec, Object obj) {
+            String consName = (consDec.getName());
+            int modifier = consDec.getModifiers();
+            if (consDec.getParameters() == null) {
+                if (modifier == 1) {
+                    allConstructors.add("+" + consName + "()");
+                    allConstructors.add("\n");
+                } else if (modifier == 2) {
+                    allConstructors.add("-" + consName + "()");
+                    allConstructors.add("\n");
+                }
+            } else {
+                String[] param = consDec.getParameters().toString().replace("]", "").replace("[", "").split(",");
+                String[] singleParam;
+                int numOfPrm = consDec.getParameters().size();
+                if (numOfPrm == 1) {
+                    singleParam = param[0].split(" ");
+                    for (String a : javaFiles) {
+                        if (isDependentTo.contains(currentClass + "..>" + a)) {
+                            break;
+                        } else {
+                            if (a.equals(singleParam[0]) && isInterface == false) {
+                                isDependentTo.add(currentClass + "..>" + a);
+                                finalOp.add(currentClass + "..>" + a);
+                                finalOp.add("\n");
+                                break;
+                                //repDependency.add(a+ "<..")
+                            }
+                        }
+                    }
+                    if (consDec.getModifiers() == 1) {
+                        consName = "+ " + consDec.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ")";
+                        allConstructors.add(consName);
+                        allConstructors.add("\n");
+                    } else if (consDec.getModifiers() == 0) {
+                        consName = "- " + consDec.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ")";
+                        allConstructors.add(consName);
+                        allConstructors.add("\n");
+                    }
+                } else {
+                    if (consDec.getModifiers() == 1) {
+                        consName = "+ " + consDec.getName() + "(";
+                        allConstructors.add(consName);
+                    } else if (consDec.getModifiers() == 0) {
+                        consName = "- " + consDec.getName() + "(";
+                        allConstructors.add(consName);
+                    }
+                    for (String prm : param) {
+                        String[] parName = prm.replaceAll("^\\s+", "").replaceAll("\\s+$", "").split(" ");
+                        for (String a : javaFiles) {
+                            if (a.equals(parName[0]) && isInterface == false) {
+                                if (isDependentTo.contains(currentClass + "..>" + a)) {
+                                    break;
+                                } else {
+                                    isDependentTo.add(currentClass + "..>" + a);
+                                    finalOp.add(currentClass + "..>" + a);
+                                    finalOp.add("\n");
+                                }
+                            }
+                        }
+                        consName = parName[1] + ":" + parName[0];
+                        allConstructors.add(consName);
+                        allConstructors.add(",");
+                    }
+                    allConstructors.add(")");
+                    allConstructors.add("\n");
+                }
+                if (numOfPrm > 1) {
+                    allConstructors.remove(allConstructors.lastIndexOf(","));
+                }
+            }
+        }
+    }
+//Class for Extracting all the classes
+
     private static class GetClassesOrInterfaces extends VoidVisitorAdapter {
 
         @Override
@@ -377,4 +477,3 @@ public class Code2Uml {
         }
     }
 }
-
