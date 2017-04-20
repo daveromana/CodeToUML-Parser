@@ -13,11 +13,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Code2Uml {
 
     static CompilationUnit cu;
     static ArrayList<String> javaFiles = new ArrayList();
+    static ArrayList<String> javaClassFiles = new ArrayList<>();
     static String[] allFiles;
     static boolean isInterface;
     static String currentClass;
@@ -52,7 +55,21 @@ public class Code2Uml {
             allFiles = classNames.split("\\.");
             if ("java".equals(allFiles[1].toLowerCase())) {
                 javaFiles.add(allFiles[0]);
+                //get all interfaces name
+                String fname = inputDirName + "/" + classNames;
+                finStream = new FileInputStream(fname);
+                try {
+                    cu = JavaParser.parse(finStream);
+                    if (cu.toString().contains(" interface ")) {
+                        //Do nothing
+                    } else {
+                        javaClassFiles.add(allFiles[0]);
+                    }
+                } catch (ParseException ex) {
+                    Logger.getLogger(Code2Uml.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
+
         }
         umlGeneratorIp.add("@startuml \n");
         for (String f : javaFiles) {
@@ -224,7 +241,7 @@ public class Code2Uml {
                     if (numOfPrm == 1) {
                         singleParam = param[0].split(" ");
                         if (isInterface == false) {
-                            for (String a : javaFiles) {
+                            for (String a : javaClassFiles) {
                                 if (isDependentTo.contains(currentClass + "..>" + a)) {
                                     break;
                                 } else {
@@ -258,7 +275,7 @@ public class Code2Uml {
                         for (String prm : param) {
                             String[] parName = prm.replaceAll("^\\s+", "").replaceAll("\\s+$", "").split(" ");
                             if (isInterface == false) {
-                                for (String a : javaFiles) {
+                                for (String a : javaClassFiles) {
                                     if (a.equals(parName[0])) {
                                         if (isDependentTo.contains(currentClass + "..>" + a)) {
                                             break;
@@ -315,7 +332,7 @@ public class Code2Uml {
                     if (numOfPrm == 1) {
                         singleParam = param[0].split(" ");
                         if (isInterface == false) {
-                            for (String a : javaFiles) {
+                            for (String a : javaClassFiles) {
                                 if (a.equals(singleParam[0])) {
                                     //System.out.println("code running "+parName[0]+"..>"+a);
                                     if (isDependentTo.contains(currentClass + "..>" + a)) {
@@ -347,7 +364,7 @@ public class Code2Uml {
                         }
                         for (String prm : param) {
                             String[] parName = prm.replaceAll("^\\s+", "").replaceAll("\\s+$", "").split(" ");
-                            for (String a : javaFiles) {
+                            for (String a : javaClassFiles) {
                                 if (isInterface == false) {
                                     if (isDependentTo.contains(currentClass + "..>" + a)) {
                                         break;
@@ -394,7 +411,7 @@ public class Code2Uml {
                 int numOfPrm = consDec.getParameters().size();
                 if (numOfPrm == 1) {
                     singleParam = param[0].split(" ");
-                    for (String a : javaFiles) {
+                    for (String a : javaClassFiles) {
                         if (isDependentTo.contains(currentClass + "..>" + a)) {
                             break;
                         } else {
@@ -426,7 +443,7 @@ public class Code2Uml {
                     }
                     for (String prm : param) {
                         String[] parName = prm.replaceAll("^\\s+", "").replaceAll("\\s+$", "").split(" ");
-                        for (String a : javaFiles) {
+                        for (String a : javaClassFiles) {
                             if (a.equals(parName[0]) && isInterface == false) {
                                 if (isDependentTo.contains(currentClass + "..>" + a)) {
                                     break;
