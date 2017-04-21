@@ -21,6 +21,7 @@ public class Code2Uml {
     static CompilationUnit cu;
     static ArrayList<String> javaFiles = new ArrayList();
     static ArrayList<String> javaClassFiles = new ArrayList<>();
+    static ArrayList<String> interfaceNames = new ArrayList<>();
     static String[] allFiles;
     static boolean isInterface;
     static String currentClass;
@@ -61,7 +62,7 @@ public class Code2Uml {
                 try {
                     cu = JavaParser.parse(finStream);
                     if (cu.toString().contains(" interface ")) {
-                        //Do nothing
+                        interfaceNames.add(allFiles[0]);
                     } else {
                         javaClassFiles.add(allFiles[0]);
                     }
@@ -103,6 +104,7 @@ public class Code2Uml {
             }
         }
         umlGeneratorIp.add("@enduml");
+
         int i = 0;
         String umlGeneratorIpStr = "";
         for (String s : umlGeneratorIp) {
@@ -239,13 +241,13 @@ public class Code2Uml {
                     String[] singleParam;
                     int numOfPrm = md.getParameters().size();
                     if (numOfPrm == 1) {
-                        singleParam = param[0].split(" ");
-                        if (isInterface == false) {
-                            for (String a : javaClassFiles) {
+                        singleParam = param[0].split(" ");                                                
+                            for (String a : javaFiles) {
+                                
                                 if (isDependentTo.contains(currentClass + "..>" + a)) {
                                     break;
                                 } else {
-                                    if (a.equals(singleParam[0])) {
+                                    if (a.equals(singleParam[0])&& interfaceNames.toString().contains(singleParam[0]) && isInterface==false) {
                                         isDependentTo.add(currentClass + "..>" + a);
                                         finalOp.add(currentClass + "..>" + a);
                                         finalOp.add("\n");
@@ -253,8 +255,7 @@ public class Code2Uml {
                                         //repDependency.add(a+ "<..")
                                     }
                                 }
-                            }
-                        }
+                            }                        
                         if (md.getModifiers() == 1) {
                             methods = "+ " + md.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ") : " + md.getType();
                             allMethods.add(methods);
@@ -274,9 +275,9 @@ public class Code2Uml {
                         }
                         for (String prm : param) {
                             String[] parName = prm.replaceAll("^\\s+", "").replaceAll("\\s+$", "").split(" ");
-                            if (isInterface == false) {
-                                for (String a : javaClassFiles) {
-                                    if (a.equals(parName[0])) {
+                            
+                                for (String a : javaFiles) {
+                                    if (a.equals(parName[0]) && isInterface==false &&interfaceNames.toString().contains(parName[0]) ) {
                                         if (isDependentTo.contains(currentClass + "..>" + a)) {
                                             break;
                                         } else {
@@ -286,7 +287,7 @@ public class Code2Uml {
                                         }
                                     }
                                 }
-                            }
+                            
                             methods = parName[1] + ":" + parName[0];
                             allMethods.add(methods);
                             allMethods.add(",");
@@ -331,20 +332,20 @@ public class Code2Uml {
                     int numOfPrm = md.getParameters().size();
                     if (numOfPrm == 1) {
                         singleParam = param[0].split(" ");
-                        if (isInterface == false) {
-                            for (String a : javaClassFiles) {
-                                if (a.equals(singleParam[0])) {
-                                    //System.out.println("code running "+parName[0]+"..>"+a);
-                                    if (isDependentTo.contains(currentClass + "..>" + a)) {
-                                        break;
-                                    } else {
-                                        isDependentTo.add(currentClass + "..>" + a);
-                                        finalOp.add(currentClass + "..>" + a);
-                                        finalOp.add("\n");
-                                    }
+
+                        for (String a : javaFiles) {
+                            if (a.equals(singleParam[0]) && interfaceNames.toString().contains(singleParam[0]) && isInterface==false) {
+                                //System.out.println("code running "+parName[0]+"..>"+a);
+                                if (isDependentTo.contains(currentClass + "..>" + a)) {
+                                    break;
+                                } else {
+                                    isDependentTo.add(currentClass + "..>" + a);
+                                    finalOp.add(currentClass + "..>" + a);
+                                    finalOp.add("\n");
                                 }
                             }
                         }
+
                         if (md.getModifiers() == 1) {
                             methods = "+ " + md.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ") : " + md.getType();
                             allMethods.add(methods);
@@ -364,17 +365,18 @@ public class Code2Uml {
                         }
                         for (String prm : param) {
                             String[] parName = prm.replaceAll("^\\s+", "").replaceAll("\\s+$", "").split(" ");
-                            for (String a : javaClassFiles) {
-                                if (isInterface == false) {
+                            for (String a : javaFiles) {    
+                                if(a.equals(parName[0])&& interfaceNames.toString().contains(parName[0]) && isInterface==false){
                                     if (isDependentTo.contains(currentClass + "..>" + a)) {
                                         break;
                                     } else {
                                         isDependentTo.add(currentClass + "..>" + a);
                                         finalOp.add(currentClass + "..>" + a);
                                         finalOp.add("\n");
-                                    }
+                                    }      
                                 }
                             }
+                            
                             methods = parName[1] + ":" + parName[0];
                             allMethods.add(methods);
                             allMethods.add(",");
@@ -411,11 +413,12 @@ public class Code2Uml {
                 int numOfPrm = consDec.getParameters().size();
                 if (numOfPrm == 1) {
                     singleParam = param[0].split(" ");
-                    for (String a : javaClassFiles) {
+
+                    for (String a : javaFiles) {
                         if (isDependentTo.contains(currentClass + "..>" + a)) {
                             break;
                         } else {
-                            if (a.equals(singleParam[0]) && isInterface == false) {
+                            if (a.equals(singleParam[0]) && interfaceNames.toString().contains(singleParam[0]) && isInterface == false) {
                                 isDependentTo.add(currentClass + "..>" + a);
                                 finalOp.add(currentClass + "..>" + a);
                                 finalOp.add("\n");
@@ -424,6 +427,7 @@ public class Code2Uml {
                             }
                         }
                     }
+
                     if (consDec.getModifiers() == 1) {
                         consName = "+ " + consDec.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ")";
                         allConstructors.add(consName);
@@ -443,8 +447,8 @@ public class Code2Uml {
                     }
                     for (String prm : param) {
                         String[] parName = prm.replaceAll("^\\s+", "").replaceAll("\\s+$", "").split(" ");
-                        for (String a : javaClassFiles) {
-                            if (a.equals(parName[0]) && isInterface == false) {
+                        for (String a : javaFiles) {
+                            if (a.equals(parName[0]) && interfaceNames.toString().contains(parName[0]) &&  isInterface == false) {
                                 if (isDependentTo.contains(currentClass + "..>" + a)) {
                                     break;
                                 } else {
