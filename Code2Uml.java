@@ -220,6 +220,24 @@ public class Code2Uml {
         @Override
         public void visit(MethodDeclaration md, Object o) {
             String methods;
+            if (md.getBody() != null) {
+                if (md.getBody().getStmts() != null) {
+                    for (int i = 0; i < md.getBody().getStmts().size(); i++) {
+                        String statement = md.getBody().getStmts().get(i).toString();
+                        if (statement.contains(" = new") || statement.contains(" =new")) {
+                            String[] reference = statement.split("=");
+                            for (String classname : interfaceNames) {
+                                if (reference[0].toString().contains(classname) && isDependentTo.contains(currentClass + " ..> " + classname) == false) {
+                                    isDependentTo.add(currentClass + " ..> " + classname);
+                                    finalOp.add(currentClass + "..>" + classname);
+                                    finalOp.add("\n");
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             if (varNames.isEmpty()) {
                 if (md.getParameters() == null) {
                     if (md.getModifiers() == 1) {
