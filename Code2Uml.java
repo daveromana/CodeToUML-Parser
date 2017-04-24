@@ -103,7 +103,6 @@ public class Code2Uml {
                 }
             }
         }
-
         umlGeneratorIp.add("@enduml");
         int i = 0;
         String umlGeneratorIpStr = "";
@@ -150,7 +149,6 @@ public class Code2Uml {
             umlGeneratorIp.add(s);
             //System.out.print(s);
         });
-
         finalOp.clear();
         allVariables.clear();
         isAssosiatedTo.clear();
@@ -221,7 +219,7 @@ public class Code2Uml {
 
         @Override
         public void visit(MethodDeclaration md, Object o) {
-            String methods;            
+            String methods;
             if (varNames.isEmpty()) {
                 if (md.getParameters() == null) {
                     if (md.getModifiers() == 1) {
@@ -359,7 +357,6 @@ public class Code2Uml {
                         allMethods.add("\n");
                     }
                 } else {
-
                     String[] param = md.getParameters().toString().replace("]", "").replace("[", "").split(",");
                     String[] singleParam;
                     int numOfPrm = md.getParameters().size();
@@ -508,7 +505,6 @@ public class Code2Uml {
                                 }
                             }
                         }
-
                         consName = parName[1] + ":" + parName[0];
                         allConstructors.add(consName);
                         allConstructors.add(",");
