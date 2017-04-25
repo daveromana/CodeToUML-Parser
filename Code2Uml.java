@@ -132,7 +132,6 @@ public class Code2Uml {
             finalOp.add(var);
             finalOp.add("\n");
         });
-
         for (String a : allConstructors) {
             finalOp.add(a);
             //finalOp.add("\n");
@@ -140,7 +139,6 @@ public class Code2Uml {
         for (String a : allMethods) {
             finalOp.add(a);
         }
-
         finalOp.add(
                 "\n}\n\n");
         finalOp.forEach(
@@ -150,19 +148,14 @@ public class Code2Uml {
                 }
         );
         finalOp.clear();
-
         allVariables.clear();
-
         isAssosiatedTo.clear();
-
         allConstructors.clear();
-
         allMethods.clear();
-
         varNames.clear();
     }
-    //Class for fetching variables in the test classes
 
+    //Class for fetching variables in the test classes
     private static class GetVariables extends VoidVisitorAdapter {
 
         @Override
@@ -172,7 +165,6 @@ public class Code2Uml {
             String types = fd.getType().toString();
             boolean isAssociated = false;
             //Association Logic goes here..if there is double association then omit it 
-
             for (String className : javaFiles) {
                 if (isAssosiatedTo.contains(types)) {
                     break;
@@ -195,31 +187,27 @@ public class Code2Uml {
             String b = null;
             Iterator<String> iter1 = assosiation.iterator();
             while (iter1.hasNext()) {
-                 b = iter1.next();
+                b = iter1.next();
                 for (String a : repAssociation1) {
-                    if (b.equals(a.replace("*", ""))) {                                                
+                    if (b.equals(a.replace("*", ""))) {
                         iter1.remove();
                     }
                 }
             }
-                        
             String c = null;
             Iterator<String> iter2 = assosiation.iterator();
             while (iter2.hasNext()) {
-                 c = iter2.next();
+                c = iter2.next();
                 for (String a : repAssociation2) {
                     if (c.equals(a.replace("*", ""))) {
                         iter2.remove();
                     }
                 }
             }
-            
-            for(String s : assosiation){
-                finalOp.add(s);                
+            for (String s : assosiation) {
+                finalOp.add(s);
             }
-            
             assosiation.clear();
-            
             varNames.add(fd.getVariables().toString().replaceAll("\\[", "").replaceAll("]", "").trim());
             String[] v;
             if (variables.contains("=")) {
@@ -244,8 +232,8 @@ public class Code2Uml {
             }
         }
     }
-
 //Class for extracting all methods in the test codes
+
     private static class GetMethods extends VoidVisitorAdapter<Object> {
 
         @Override
@@ -489,8 +477,8 @@ public class Code2Uml {
             }
         }
     }
-
 //Class for Extracting all the Constructors
+
     private static class GetConstructors extends VoidVisitorAdapter<Object> {
 
         @Override
