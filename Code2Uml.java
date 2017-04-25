@@ -29,7 +29,7 @@ public class Code2Uml {
     //variables used in fetching all the fields
     static ArrayList<String> allVariables = new ArrayList<String>();
     static ArrayList<String> isAssosiatedTo = new ArrayList<String>();
-    static ArrayList<String> assosiation = new ArrayList<>();
+    static ArrayList<String> assosiationList = new ArrayList<>();
     static ArrayList<String> repAssociation1 = new ArrayList<String>();
     static ArrayList<String> repAssociation2 = new ArrayList<String>();
     static ArrayList<String> finalOp = new ArrayList<>();
@@ -105,6 +105,13 @@ public class Code2Uml {
                 }
             }
         }
+        //adding association grammar in the output file
+        for (String s : assosiationList) {
+            if (umlGeneratorIp.contains(s) == false) {
+                umlGeneratorIp.add(s);
+                umlGeneratorIp.add("\n");
+            }
+        }
         umlGeneratorIp.add("@enduml");
         int i = 0;
         String umlGeneratorIpStr = "";
@@ -147,6 +154,7 @@ public class Code2Uml {
                     //System.out.print(s);
                 }
         );
+        //assosiationList.clear();
         finalOp.clear();
         allVariables.clear();
         isAssosiatedTo.clear();
@@ -164,50 +172,50 @@ public class Code2Uml {
             String variables = fd.getVariables().toString().replaceAll("\\[", "").replaceAll("]", "").replaceAll("^\\s+", "").replaceAll("\\s+$", "");
             String types = fd.getType().toString();
             boolean isAssociated = false;
-            //Association Logic goes here..if there is double association then omit it 
-            for (String className : javaFiles) {
-                if (isAssosiatedTo.contains(types)) {
-                    break;
+            //assc
+            for (String classname : javaFiles) {
+                String associate = null;
+                String reverse1 = null;
+                String reverse2 = null;
+                String reverse12 = null;
+                String reverse = null;
+                String allocate = null;
+                int flag = 0;
+                if (fd.getType().toString().equals(classname)) {
+                    associate = currentClass + " -- " + classname;
+                    reverse = classname + " -- " + currentClass;
+                    reverse12 = associate;
+                    flag = 1;
+                } else if (fd.getType().toString().contains("<" + classname + ">")) {
+                    associate = currentClass + " -- \"*\" " + classname;
+                    reverse = classname + " -- \"*\" " + currentClass;
+                    flag = 2;
                 }
-                if (className.equals(types)) {
-                    isAssosiatedTo.add(types);
-                    assosiation.add(currentClass + "--" + types);
-                    assosiation.add("\n");
-                    repAssociation1.add(types + "--" + currentClass);
-                } else if (types.contains("<" + className + ">")) {
-                    isAssociated = true;
-                    int beginIndex = types.indexOf("<");
-                    int endIndex = types.indexOf(">");
-                    isAssosiatedTo.add(types.substring(beginIndex + 1, endIndex));
-                    assosiation.add(currentClass + "--*" + types.substring(beginIndex + 1, endIndex));
-                    assosiation.add("\n");
-                    repAssociation2.add(types.substring(beginIndex + 1, endIndex) + "--*" + currentClass);
-                }
-            }
-            String b = null;
-            Iterator<String> iter1 = assosiation.iterator();
-            while (iter1.hasNext()) {
-                b = iter1.next();
-                for (String a : repAssociation1) {
-                    if (b.equals(a.replace("*", ""))) {
-                        iter1.remove();
+                reverse1 = classname + " -- " + currentClass;
+                reverse2 = classname + " -- \"*\" " + currentClass;
+                if (associate != null && assosiationList.contains(associate) == false && assosiationList.contains(reverse1) == false && assosiationList.contains(reverse2) == false) {
+                    assosiationList.add(associate);
+                    //assosiationList.add("\n");
+                } else if (associate != null && assosiationList.contains(associate) == false && (assosiationList.contains(reverse1) || assosiationList.contains(reverse2))) {
+                    if (assosiationList.contains(reverse1) && flag == 2) {
+                        assosiationList.remove(reverse1);
+                        allocate = currentClass + " \"1\" -- \"*\" " + classname;
+                        assosiationList.add(allocate);
+                        //assosiationList.add("\n");
+                    } else if (assosiationList.contains(reverse2) && flag == 1) {
+                        assosiationList.remove(reverse2);
+                        allocate = currentClass + " \"*\" -- \"1\" " + classname;
+                        assosiationList.add(allocate);
+                        //assosiationList.add("\n");
+                    } else if (assosiationList.contains(reverse2) && flag == 2) {
+                        assosiationList.remove(reverse2);
+                        allocate = currentClass + " \"*\" -- \"*\" " + classname;
+                        assosiationList.add(allocate);
+                        //assosiationList.add("\n");
                     }
                 }
             }
-            String c = null;
-            Iterator<String> iter2 = assosiation.iterator();
-            while (iter2.hasNext()) {
-                c = iter2.next();
-                for (String a : repAssociation2) {
-                    if (c.equals(a.replace("*", ""))) {
-                        iter2.remove();
-                    }
-                }
-            }
-            for (String s : assosiation) {
-                finalOp.add(s);
-            }
-            assosiation.clear();
+
             varNames.add(fd.getVariables().toString().replaceAll("\\[", "").replaceAll("]", "").trim());
             String[] v;
             if (variables.contains("=")) {
@@ -582,4 +590,3 @@ public class Code2Uml {
         }
     }
 }
-
