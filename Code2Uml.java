@@ -29,7 +29,9 @@ public class Code2Uml {
     //variables used in fetching all the fields
     static ArrayList<String> allVariables = new ArrayList<String>();
     static ArrayList<String> isAssosiatedTo = new ArrayList<String>();
-    static ArrayList<String> repAssociation = new ArrayList<String>();
+    static ArrayList<String> assosiation = new ArrayList<>();
+    static ArrayList<String> repAssociation1 = new ArrayList<String>();
+    static ArrayList<String> repAssociation2 = new ArrayList<String>();
     static ArrayList<String> finalOp = new ArrayList<>();
     static ArrayList<String> umlGeneratorIp = new ArrayList<>();
     static ArrayList<String> varNames = new ArrayList<>();
@@ -47,7 +49,7 @@ public class Code2Uml {
 
     public static void main(String[] args) throws IOException {
         FileInputStream finStream = null;
-        String inputDirName = "C:\\Users\\Karan\\Downloads\\202 downloads\\cmpe202-master\\cmpe202-master\\umlparser\\uml-parser-test-5";
+        String inputDirName = "C:\\Users\\Karan\\Downloads\\202 downloads\\cmpe202-master\\cmpe202-master\\umlparser\\uml-parser-test-1";
         File inputFile = new File(inputDirName);
         File[] inputFileList = inputFile.listFiles();
         String classNames;
@@ -130,13 +132,7 @@ public class Code2Uml {
             finalOp.add(var);
             finalOp.add("\n");
         });
-        Iterator<String> iter = finalOp.iterator();
-        while (iter.hasNext()) {
-            String b = iter.next();
-            repAssociation.stream().filter((a) -> (a.equals(b))).forEachOrdered((_item) -> {
-                iter.remove();
-            });
-        }
+
         for (String a : allConstructors) {
             finalOp.add(a);
             //finalOp.add("\n");
@@ -144,51 +140,86 @@ public class Code2Uml {
         for (String a : allMethods) {
             finalOp.add(a);
         }
-        finalOp.add("\n}\n\n");
-        finalOp.forEach((s) -> {
-            umlGeneratorIp.add(s);
-            //System.out.print(s);
-        });
+
+        finalOp.add(
+                "\n}\n\n");
+        finalOp.forEach(
+                (s) -> {
+                    umlGeneratorIp.add(s);
+                    //System.out.print(s);
+                }
+        );
         finalOp.clear();
+
         allVariables.clear();
+
         isAssosiatedTo.clear();
+
         allConstructors.clear();
+
         allMethods.clear();
+
         varNames.clear();
     }
-
     //Class for fetching variables in the test classes
+
     private static class GetVariables extends VoidVisitorAdapter {
 
         @Override
         public void visit(FieldDeclaration fd, Object obj) {
             String classVariables;
             String variables = fd.getVariables().toString().replaceAll("\\[", "").replaceAll("]", "").replaceAll("^\\s+", "").replaceAll("\\s+$", "");
-            ArrayList<String> types = new ArrayList<>();
-            types.add(fd.getType().toString());
+            String types = fd.getType().toString();
             boolean isAssociated = false;
             //Association Logic goes here..if there is double association then omit it 
-            for (String s : types) {
-                for (String className : javaFiles) {
-                    if (isAssosiatedTo.contains(s)) {
-                        break;
-                    }
-                    if (className.equals(s)) {
-                        isAssosiatedTo.add(s);
-                        finalOp.add(currentClass + "--" + s);
-                        finalOp.add("\n");
-                        repAssociation.add(s + "--" + currentClass);
-                    } else if (s.contains("<" + className + ">")) {
-                        isAssociated = true;
-                        int beginIndex = s.indexOf("<");
-                        int endIndex = s.indexOf(">");
-                        isAssosiatedTo.add(s.substring(beginIndex + 1, endIndex));
-                        finalOp.add(currentClass + "--" + s.substring(beginIndex + 1, endIndex));
-                        finalOp.add("\n");
-                        repAssociation.add(s.substring(beginIndex + 1, endIndex) + "--" + currentClass);
+
+            for (String className : javaFiles) {
+                if (isAssosiatedTo.contains(types)) {
+                    break;
+                }
+                if (className.equals(types)) {
+                    isAssosiatedTo.add(types);
+                    assosiation.add(currentClass + "--" + types);
+                    assosiation.add("\n");
+                    repAssociation1.add(types + "--" + currentClass);
+                } else if (types.contains("<" + className + ">")) {
+                    isAssociated = true;
+                    int beginIndex = types.indexOf("<");
+                    int endIndex = types.indexOf(">");
+                    isAssosiatedTo.add(types.substring(beginIndex + 1, endIndex));
+                    assosiation.add(currentClass + "--*" + types.substring(beginIndex + 1, endIndex));
+                    assosiation.add("\n");
+                    repAssociation2.add(types.substring(beginIndex + 1, endIndex) + "--*" + currentClass);
+                }
+            }
+            String b = null;
+            Iterator<String> iter1 = assosiation.iterator();
+            while (iter1.hasNext()) {
+                 b = iter1.next();
+                for (String a : repAssociation1) {
+                    if (b.equals(a.replace("*", ""))) {                                                
+                        iter1.remove();
                     }
                 }
             }
+                        
+            String c = null;
+            Iterator<String> iter2 = assosiation.iterator();
+            while (iter2.hasNext()) {
+                 c = iter2.next();
+                for (String a : repAssociation2) {
+                    if (c.equals(a.replace("*", ""))) {
+                        iter2.remove();
+                    }
+                }
+            }
+            
+            for(String s : assosiation){
+                finalOp.add(s);                
+            }
+            
+            assosiation.clear();
+            
             varNames.add(fd.getVariables().toString().replaceAll("\\[", "").replaceAll("]", "").trim());
             String[] v;
             if (variables.contains("=")) {
@@ -214,7 +245,7 @@ public class Code2Uml {
         }
     }
 
-    //Class for extracting all methods in the test codes
+//Class for extracting all methods in the test codes
     private static class GetMethods extends VoidVisitorAdapter<Object> {
 
         @Override
@@ -459,7 +490,7 @@ public class Code2Uml {
         }
     }
 
-    //Class for Extracting all the Constructors
+//Class for Extracting all the Constructors
     private static class GetConstructors extends VoidVisitorAdapter<Object> {
 
         @Override
@@ -563,4 +594,3 @@ public class Code2Uml {
         }
     }
 }
- 
