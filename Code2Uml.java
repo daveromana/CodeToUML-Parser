@@ -215,7 +215,6 @@ public class Code2Uml {
                     }
                 }
             }
-
             varNames.add(fd.getVariables().toString().replaceAll("\\[", "").replaceAll("]", "").trim());
             String[] v;
             if (variables.contains("=")) {
