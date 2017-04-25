@@ -26,6 +26,7 @@ public class Code2Uml {
     static boolean isInterface;
     static String currentClass;
     static ArrayList<String> test = new ArrayList<>();
+    static String outputDirName;
     //variables used in fetching all the fields
     static ArrayList<String> allVariables = new ArrayList<String>();
     static ArrayList<String> isAssosiatedTo = new ArrayList<String>();
@@ -50,6 +51,10 @@ public class Code2Uml {
     public static void main(String[] args) throws IOException {
         FileInputStream finStream = null;
         String inputDirName = "C:\\Users\\Karan\\Downloads\\202 downloads\\cmpe202-master\\cmpe202-master\\umlparser\\uml-parser-test-1";
+        //String inputDirName = args[0];
+        //String outputFileName = args[1];
+        String outputFileName = "OutputImage";
+        outputDirName = inputDirName + "\\" + outputFileName + ".SVG";
         File inputFile = new File(inputDirName);
         File[] inputFileList = inputFile.listFiles();
         String classNames;
@@ -171,46 +176,46 @@ public class Code2Uml {
             String classVariables;
             String variables = fd.getVariables().toString().replaceAll("\\[", "").replaceAll("]", "").replaceAll("^\\s+", "").replaceAll("\\s+$", "");
             String types = fd.getType().toString();
-            boolean isAssociated = false;
+            //boolean isAssociated = false;
             //assc
             for (String classname : javaFiles) {
-                String associate = null;
-                String reverse1 = null;
-                String reverse2 = null;
-                String reverse12 = null;
-                String reverse = null;
-                String allocate = null;
+                String a = null;
+                String r1 = null;
+                String r2 = null;
+                String r12 = null;
+                String r = null;
+                String newAssociation = null;
                 int flag = 0;
                 if (fd.getType().toString().equals(classname)) {
-                    associate = currentClass + " -- " + classname;
-                    reverse = classname + " -- " + currentClass;
-                    reverse12 = associate;
+                    a = currentClass + " -- " + classname;
+                    r = classname + " -- " + currentClass;
+                    r12 = a;
                     flag = 1;
                 } else if (fd.getType().toString().contains("<" + classname + ">")) {
-                    associate = currentClass + " -- \"*\" " + classname;
-                    reverse = classname + " -- \"*\" " + currentClass;
+                    a = currentClass + " -- \"*\" " + classname;
+                    r = classname + " -- \"*\" " + currentClass;
                     flag = 2;
                 }
-                reverse1 = classname + " -- " + currentClass;
-                reverse2 = classname + " -- \"*\" " + currentClass;
-                if (associate != null && assosiationList.contains(associate) == false && assosiationList.contains(reverse1) == false && assosiationList.contains(reverse2) == false) {
-                    assosiationList.add(associate);
+                r1 = classname + " -- " + currentClass;
+                r2 = classname + " -- \"*\" " + currentClass;
+                if (a != null && assosiationList.contains(a) == false && assosiationList.contains(r1) == false && assosiationList.contains(r2) == false) {
+                    assosiationList.add(a);
                     //assosiationList.add("\n");
-                } else if (associate != null && assosiationList.contains(associate) == false && (assosiationList.contains(reverse1) || assosiationList.contains(reverse2))) {
-                    if (assosiationList.contains(reverse1) && flag == 2) {
-                        assosiationList.remove(reverse1);
-                        allocate = currentClass + " \"1\" -- \"*\" " + classname;
-                        assosiationList.add(allocate);
+                } else if (a != null && assosiationList.contains(a) == false && (assosiationList.contains(r1) || assosiationList.contains(r2))) {
+                    if (assosiationList.contains(r1) && flag == 2) {
+                        assosiationList.remove(r1);
+                        newAssociation = currentClass + " \"1\" -- \"*\" " + classname;
+                        assosiationList.add(newAssociation);
                         //assosiationList.add("\n");
-                    } else if (assosiationList.contains(reverse2) && flag == 1) {
-                        assosiationList.remove(reverse2);
-                        allocate = currentClass + " \"*\" -- \"1\" " + classname;
-                        assosiationList.add(allocate);
+                    } else if (assosiationList.contains(r2) && flag == 1) {
+                        assosiationList.remove(r2);
+                        newAssociation = currentClass + " \"*\" -- \"1\" " + classname;
+                        assosiationList.add(newAssociation);
                         //assosiationList.add("\n");
-                    } else if (assosiationList.contains(reverse2) && flag == 2) {
-                        assosiationList.remove(reverse2);
-                        allocate = currentClass + " \"*\" -- \"*\" " + classname;
-                        assosiationList.add(allocate);
+                    } else if (assosiationList.contains(r2) && flag == 2) {
+                        assosiationList.remove(r2);
+                        newAssociation = currentClass + " \"*\" -- \"*\" " + classname;
+                        assosiationList.add(newAssociation);
                         //assosiationList.add("\n");
                     }
                 }
@@ -218,16 +223,16 @@ public class Code2Uml {
             varNames.add(fd.getVariables().toString().replaceAll("\\[", "").replaceAll("]", "").trim());
             String[] v;
             if (variables.contains("=")) {
-                if (!isAssociated) {
+              
                     v = variables.split("=");
                     if (fd.getModifiers() == 1) {
                         classVariables = "+ " + v[0].trim() + " : " + fd.getType();
-                        allVariables.add(classVariables);
+                        //allVariables.add(classVariables);
                     } else if (fd.getModifiers() == 2) {
                         classVariables = "- " + v[0].trim() + " : " + fd.getType();
-                        allVariables.add(classVariables);
+                       // allVariables.add(classVariables);
                     }
-                }
+                
             } else {
                 if (fd.getModifiers() == 1) {
                     classVariables = "+ " + variables + " : " + fd.getType();
