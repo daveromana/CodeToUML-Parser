@@ -50,7 +50,7 @@ public class Code2Uml {
 
     public static void main(String[] args) throws IOException {
         FileInputStream finStream = null;
-        String inputDirName = "C:\\Users\\Karan\\Downloads\\202 downloads\\cmpe202-master\\cmpe202-master\\umlparser\\uml-parser-test-1";
+        String inputDirName = "C:\\Users\\Karan\\Documents\\CMPE-202\\umlparser\\uml-parser-test-1";
         //String inputDirName = args[0];
         //String outputFileName = args[1];
         String outputFileName = "OutputImage";
@@ -220,19 +220,18 @@ public class Code2Uml {
                     }
                 }
             }
+            
             varNames.add(fd.getVariables().toString().replaceAll("\\[", "").replaceAll("]", "").trim());
             String[] v;
-            if (variables.contains("=")) {
-              
+            if (variables.contains("=")) {              
                     v = variables.split("=");
                     if (fd.getModifiers() == 1) {
                         classVariables = "+ " + v[0].trim() + " : " + fd.getType();
-                        //allVariables.add(classVariables);
+                        allVariables.add(classVariables);
                     } else if (fd.getModifiers() == 2) {
                         classVariables = "- " + v[0].trim() + " : " + fd.getType();
-                       // allVariables.add(classVariables);
-                    }
-                
+                        allVariables.add(classVariables);
+                    }                
             } else {
                 if (fd.getModifiers() == 1) {
                     classVariables = "+ " + variables + " : " + fd.getType();
