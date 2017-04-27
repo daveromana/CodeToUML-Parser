@@ -25,12 +25,12 @@ public class Code2Uml {
     static String[] allFiles;
     static boolean isInterface;
     static String currentClass;
-    static ArrayList<String> test = new ArrayList<>();
     static String outputDirName;
+    static ArrayList<String> test = new ArrayList<>();
     //variables used in fetching all the fields
     static ArrayList<String> allVariables = new ArrayList<String>();
     static ArrayList<String> isAssosiatedTo = new ArrayList<String>();
-    static ArrayList<String> assosiationList = new ArrayList<>();
+    static ArrayList<String> assosiation = new ArrayList<>();
     static ArrayList<String> repAssociation1 = new ArrayList<String>();
     static ArrayList<String> repAssociation2 = new ArrayList<String>();
     static ArrayList<String> finalOp = new ArrayList<>();
@@ -50,11 +50,12 @@ public class Code2Uml {
 
     public static void main(String[] args) throws IOException {
         FileInputStream finStream = null;
-        String inputDirName = "C:\\Users\\Karan\\Documents\\CMPE-202\\umlparser\\uml-parser-test-1";
+        String inputDirName = "C:\\Users\\Karan\\Documents\\CMPE-202\\TestCases\\test1";
         //String inputDirName = args[0];
-        //String outputFileName = args[1];
         String outputFileName = "OutputImage";
+        //String outputFileName = args[1];        
         outputDirName = inputDirName + "\\" + outputFileName + ".SVG";
+
         File inputFile = new File(inputDirName);
         File[] inputFileList = inputFile.listFiles();
         String classNames;
@@ -79,7 +80,9 @@ public class Code2Uml {
                 }
             }
         }
+
         umlGeneratorIp.add("@startuml \n");
+        umlGeneratorIp.add("skinparam classAttributeIconSize 0\n");
         for (String f : javaFiles) {
             String fileName = inputDirName + "/" + f + ".java";
             try {
@@ -100,6 +103,7 @@ public class Code2Uml {
                 GetClassesOrInterfaces getCls = new GetClassesOrInterfaces();
                 getCls.visit(cu, 0);
                 createUMLInput();
+
                 //System.out.println(cu+"\n\n");
             } catch (ParseException | FileNotFoundException e) {
             } finally {
@@ -110,14 +114,15 @@ public class Code2Uml {
                 }
             }
         }
-        //adding association grammar in the output file
-        for (String s : assosiationList) {
-            if (umlGeneratorIp.contains(s) == false) {
-                umlGeneratorIp.add(s);
-                umlGeneratorIp.add("\n");
-            }
+        for (String s : assosiation) {
+            umlGeneratorIp.add(s);
+            umlGeneratorIp.add("\n");
         }
-        umlGeneratorIp.add("@enduml");
+
+        assosiation.clear();
+        umlGeneratorIp.add("@enduml" + "\n");
+
+        assosiation.clear();
         int i = 0;
         String umlGeneratorIpStr = "";
         for (String s : umlGeneratorIp) {
@@ -151,15 +156,14 @@ public class Code2Uml {
         for (String a : allMethods) {
             finalOp.add(a);
         }
-        finalOp.add(
-                "\n}\n\n");
+
+        finalOp.add("\n}\n\n");
         finalOp.forEach(
                 (s) -> {
                     umlGeneratorIp.add(s);
                     //System.out.print(s);
                 }
         );
-        //assosiationList.clear();
         finalOp.clear();
         allVariables.clear();
         isAssosiatedTo.clear();
@@ -175,55 +179,52 @@ public class Code2Uml {
         public void visit(FieldDeclaration fd, Object obj) {
             String classVariables;
             String variables = fd.getVariables().toString().replaceAll("\\[", "").replaceAll("]", "").replaceAll("^\\s+", "").replaceAll("\\s+$", "");
-            String types = fd.getType().toString();
-            //boolean isAssociated = false;
-            //assc
-            for (String classname : javaFiles) {
-                String a = null;
-                String r1 = null;
-                String r2 = null;
-                String r12 = null;
-                String r = null;
-                String newAssociation = null;
-                int flag = 0;
-                if (fd.getType().toString().equals(classname)) {
-                    a = currentClass + " -- " + classname;
-                    r = classname + " -- " + currentClass;
-                    r12 = a;
-                    flag = 1;
-                } else if (fd.getType().toString().contains("<" + classname + ">")) {
-                    a = currentClass + " -- \"*\" " + classname;
-                    r = classname + " -- \"*\" " + currentClass;
-                    flag = 2;
+            String type = fd.getType().toString();
+            boolean isAssociated = false;
+
+            for (String className : javaFiles) {
+                boolean hasObject = type.equals(className);
+                boolean hasCollection = type.contains("<" + className + ">");
+                if (hasObject || hasCollection) {
+                    if (hasObject && !assosiation.contains(currentClass + "--" + className)) {
+                        assosiation.add(currentClass + "--" + className);
+                        repAssociation1.add(className + "--" + currentClass);
+                        break;
+                    } else if (hasCollection && !assosiation.contains(currentClass + "--*" + className)) {
+                        assosiation.add(currentClass + "--*" + className);
+                        repAssociation1.add(className + "--*" + currentClass);
+                        break;
+                    }
+
                 }
-                r1 = classname + " -- " + currentClass;
-                r2 = classname + " -- \"*\" " + currentClass;
-                if (a != null && assosiationList.contains(a) == false && assosiationList.contains(r1) == false && assosiationList.contains(r2) == false) {
-                    assosiationList.add(a);
-                    //assosiationList.add("\n");
-                } else if (a != null && assosiationList.contains(a) == false && (assosiationList.contains(r1) || assosiationList.contains(r2))) {
-                    if (assosiationList.contains(r1) && flag == 2) {
-                        assosiationList.remove(r1);
-                        newAssociation = currentClass + " \"1\" -- \"*\" " + classname;
-                        assosiationList.add(newAssociation);
-                        //assosiationList.add("\n");
-                    } else if (assosiationList.contains(r2) && flag == 1) {
-                        assosiationList.remove(r2);
-                        newAssociation = currentClass + " \"*\" -- \"1\" " + classname;
-                        assosiationList.add(newAssociation);
-                        //assosiationList.add("\n");
-                    } else if (assosiationList.contains(r2) && flag == 2) {
-                        assosiationList.remove(r2);
-                        newAssociation = currentClass + " \"*\" -- \"*\" " + classname;
-                        assosiationList.add(newAssociation);
-                        //assosiationList.add("\n");
+            }
+
+            String b = null;
+            Iterator<String> iter1 = assosiation.iterator();
+            while (iter1.hasNext()) {
+                b = iter1.next();
+                for (String a : repAssociation1) {
+                    if (b.equals(a)) {
+                        iter1.remove();
+                    } else if (b.equals(a.replace("*", ""))) {
+                        iter1.remove();
                     }
                 }
             }
-            
+
+            for (String s : assosiation) {
+                umlGeneratorIp.add(s);
+                umlGeneratorIp.add("\n");
+            }
+
+            assosiation.clear();
+          
             varNames.add(fd.getVariables().toString().replaceAll("\\[", "").replaceAll("]", "").trim());
             String[] v;
-            if (variables.contains("=")) {              
+
+            if (variables.contains(
+                    "=")) {
+                if (!isAssociated) {
                     v = variables.split("=");
                     if (fd.getModifiers() == 1) {
                         classVariables = "+ " + v[0].trim() + " : " + fd.getType();
@@ -231,15 +232,20 @@ public class Code2Uml {
                     } else if (fd.getModifiers() == 2) {
                         classVariables = "- " + v[0].trim() + " : " + fd.getType();
                         allVariables.add(classVariables);
-                    }                
-            } else {
-                if (fd.getModifiers() == 1) {
-                    classVariables = "+ " + variables + " : " + fd.getType();
-                    allVariables.add(classVariables);
-                } else if (fd.getModifiers() == 2) {
-                    classVariables = "- " + variables + " : " + fd.getType();
-                    allVariables.add(classVariables);
+                    }
                 }
+            } else {
+                if (isAssociated != true) {
+                    if (fd.getModifiers() == 1) {
+                        classVariables = "+ " + variables + " : " + fd.getType();
+                        allVariables.add(classVariables);
+                    } else if (fd.getModifiers() == 2) {
+                        classVariables = "- " + variables + " : " + fd.getType();
+                        allVariables.add(classVariables);
+                    }
+
+                }
+
             }
         }
     }
