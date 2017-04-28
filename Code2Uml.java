@@ -50,7 +50,7 @@ public class Code2Uml {
 
     public static void main(String[] args) throws IOException {
         FileInputStream finStream = null;
-        String inputDirName = "C:\\Users\\Karan\\Documents\\CMPE-202\\TestCases\\test1";
+        String inputDirName = "C:\\Users\\Karan\\Documents\\CMPE-202\\TestCases\\test3";
         //String inputDirName = args[0];
         String outputFileName = "OutputImage";
         //String outputFileName = args[1];        
@@ -256,6 +256,7 @@ public class Code2Uml {
         @Override
         public void visit(MethodDeclaration md, Object o) {
             String methods;
+            boolean isGetterSetter = false;
             if (md.getBody() != null) {
                 if (md.getBody().getStmts() != null) {
                     for (int i = 0; i < md.getBody().getStmts().size(); i++) {
@@ -307,8 +308,7 @@ public class Code2Uml {
                                     isDependentTo.add(currentClass + "..>" + a);
                                     finalOp.add(currentClass + "..>" + a);
                                     finalOp.add("\n");
-                                    break;
-                                    //repDependency.add(a+ "<..")
+                                    break;                                    
                                 }
                             }
                         }
@@ -376,8 +376,9 @@ public class Code2Uml {
                     }
                 }
             } else {
-                for (String s : varNames) {
+                for (String s : varNames) {                    
                     if (md.getName().toLowerCase().equals("get" + s) || md.getName().toLowerCase().equals("set" + s)) {
+                        isGetterSetter = true;
                         Iterator<String> iter = allVariables.iterator();
                         String newVar = new String();
                         while (iter.hasNext()) {
@@ -393,28 +394,29 @@ public class Code2Uml {
                     }
                 }
                 if (md.getParameters() == null) {
-                    if (md.getModifiers() == 1) {
+                    if (md.getModifiers() == 1 && !isGetterSetter) {
                         methods = "+ " + md.getName() + "() : " + md.getType();
                         allMethods.add(methods);
                         allMethods.add("\n");
-                    } else if (md.getModifiers() == 0) {
+                    } else if (md.getModifiers() == 0 && !isGetterSetter) {
                         methods = "- " + md.getName() + "() : " + md.getType();
                         allMethods.add(methods);
                         allMethods.add("\n");
-                    } else if (md.getModifiers() == 1025) {
+                    } else if (md.getModifiers() == 1025 && !isGetterSetter) {
                         methods = "+ " + md.getName() + "() : " + md.getType();
                         allMethods.add(methods);
                         allMethods.add("\n");
-                    } else if (md.getModifiers() == 9) {
+                    } else if (md.getModifiers() == 9 && !isGetterSetter) {
                         methods = "+ {static} " + md.getName() + "() : " + md.getType();
                         allMethods.add(methods);
                         allMethods.add("\n");
                     }
                 } else {
+                    System.out.println(md.getParameters());
                     String[] param = md.getParameters().toString().replace("]", "").replace("[", "").split(",");
                     String[] singleParam;
                     int numOfPrm = md.getParameters().size();
-                    if (numOfPrm == 1) {
+                    if (numOfPrm == 1 ) {
                         singleParam = param[0].split(" ");
                         for (String a : javaFiles) {
                             if (a.equals(singleParam[0]) && interfaceNames.toString().contains(singleParam[0]) && isInterface == false) {
@@ -428,19 +430,19 @@ public class Code2Uml {
                                 }
                             }
                         }
-                        if (md.getModifiers() == 1) {
+                        if (md.getModifiers() == 1 && !isGetterSetter) {
                             methods = "+ " + md.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ") : " + md.getType();
                             allMethods.add(methods);
                             allMethods.add("\n");
-                        } else if (md.getModifiers() == 0) {
+                        } else if (md.getModifiers() == 0 && !isGetterSetter) {
                             methods = "- " + md.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ") : " + md.getType();
                             allMethods.add(methods);
                             allMethods.add("\n");
-                        } else if (md.getModifiers() == 1025) {
+                        } else if (md.getModifiers() == 1025 && !isGetterSetter) {
                             methods = "+ " + md.getName() + "( " + singleParam[1] + ": " + singleParam[0] + ") : " + md.getType();
                             allMethods.add(methods);
                             allMethods.add("\n");
-                        } else if (md.getModifiers() == 9) {
+                        } else if (md.getModifiers() == 9 && !isGetterSetter) {
                             if (md.getName().equals("main")) {
                                 methods = "+ {static} " + md.getName() + "( " + singleParam[1] + ": " + singleParam[0] + "[]) : " + md.getType();
                                 allMethods.add(methods);
@@ -451,18 +453,18 @@ public class Code2Uml {
                                 allMethods.add("\n");
                             }
                         }
-                    } else {
-                        if (md.getModifiers() == 1) {
+                    } else  {
+                        if (md.getModifiers() == 1 && !isGetterSetter ) {
                             methods = "+ " + md.getName() + "(";
                             allMethods.add(methods);
-                        } else if (md.getModifiers() == 0) {
+                        } else if (md.getModifiers() == 0 && !isGetterSetter) {
                             methods = "- " + md.getName() + "(";
                             allMethods.add(methods);
-                        } else if (md.getModifiers() == 1025) {
+                        } else if (md.getModifiers() == 1025 && !isGetterSetter) {
                             methods = "+ " + md.getName() + "( ";
                             allMethods.add(methods);
                             allMethods.add("\n");
-                        } else if (md.getModifiers() == 9) {
+                        } else if (md.getModifiers() == 9 && !isGetterSetter) {
                             methods = "+ {static} " + md.getName() + "( ";
                             allMethods.add(methods);
                             allMethods.add("\n");
